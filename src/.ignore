@@ -15,7 +15,3 @@ y.tab
 *.o
 *.exe
 *.out
-
-# Ignore sensitive or confidential files
-config.ini
-credentials.txt
