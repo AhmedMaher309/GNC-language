@@ -8,7 +8,7 @@ double yylval;
 
 
 
-/*//////////////////////////////////Optional Section /////////////////////////////////////*/
+/*////////////////////////////////// Optional Section /////////////////////////////////////*/
 %option noyywrap 
 
 TYPE_INT    "int"
@@ -42,28 +42,32 @@ CONSTANT    "const"
 #define IF               15
 #define ELSE             16
 #define ELSEIF           17
-#define PLUS_OP          18
-#define MINUS_OP         19
-#define MULT_OP          20
-#define DIV_OP           21
-#define MODULE_OP        22
-#define POWER_OP         23
-#define EQU_OP           24
-#define MORE_OP          25
-#define LESS_OP          26
-#define EQU_EQU_OP       27
-#define MORE_OR_EQU_OP   27
-#define LESS_OR_EQU_OP   29
-#define OPEN_CURL        30
-#define CLOSE_CURL       31
-#define OPEN_BRAC        32
-#define CLOSE_BRAC       33
-#define SEMICOLON        34
-#define COMMA            35
-#define REPEAT           36
-#define UNTIL            37
-#define VOID             38
-#define IDENTIFIER       39
+#define SWITCH           18
+#define CASE             19
+#define PLUS_OP          20
+#define MINUS_OP         21
+#define MULT_OP          22
+#define DIV_OP           23
+#define MODULE_OP        24
+#define POWER_OP         25
+#define EQU_OP           26
+#define MORE_OP          27
+#define LESS_OP          28
+#define EQU_EQU_OP       29
+#define MORE_OR_EQU_OP   30
+#define LESS_OR_EQU_OP   31
+#define OPEN_CURL        32
+#define CLOSE_CURL       33
+#define OPEN_BRAC        34
+#define CLOSE_BRAC       35
+#define SEMICOLON        36
+#define COMMA            37
+#define REPEAT           38
+#define UNTIL            39
+#define VOID             40
+#define IDENTIFIER       41
+#define COMMENT          42
+
 %}
 
 
@@ -84,16 +88,18 @@ CONSTANT    "const"
 {CONSTANT}                                              { return CONSTANT; }
 
  /* Loops and breaks*/
- while                                                  { return WHILE;}
- for                                                    { return FOR;}
- do                                                     { return DO;}
- break                                                  { return BREAK;}
- continue                                               { return CONTINUE;}
+while                                                   { return WHILE; }
+for                                                     { return FOR; }
+do                                                      { return DO; }
+break                                                   { return BREAK; }
+continue                                                { return CONTINUE; }
  
- /* if, else, elseif */
- if                                                     { return IF;}
- else                                                   { return ELSE;}
- elseif                                                 { return ELSEIF;}
+ /* if, else, elseif, switch cases */
+if                                                      { return IF; }
+else                                                    { return ELSE; }
+elseif                                                  { return ELSEIF; }
+switch                                                  { return SWITCH; }
+case                                                    { return CASE; }
 
  /* mathematical operators */
 "+"                                                     { return PLUS_OP; }
@@ -127,6 +133,9 @@ CONSTANT    "const"
  /* functions keywords */
 "void"                                                  { return VOID; }
 
+ /* comments */
+"/*".*"*/"                                              { return COMMENT; }
+
 {IDENTIFIER}                                            { return IDENTIFIER; }
  
 [ \t\n]                                                 { /* ignore whitespace */ }
@@ -134,12 +143,12 @@ CONSTANT    "const"
 
 %%
 
-/*/////////////////////// Optional Supporting Code Seciton//////////////////////////////////////*/
+/* /////////////////////// Optional Supporting Code Seciton ////////////////////////////////////// */
 /*
 any optional C supporting code
 */
 
-/*///////////////////////////////////// Main Secton //////////////////////////////////////////*/
+/* ///////////////////////////////////// Main Secton //////////////////////////////////////// */
 int main() {
     int token;
     while ((token = yylex()) != 0)
