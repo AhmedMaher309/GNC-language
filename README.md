@@ -52,7 +52,10 @@ The project is organized as follows:
     README.md          # This file
 
 
-## Contributers
+# Contributers
 
-- [Youssef Ismail](https://github.com/YoussefIsmail1337 )
+- [Youssef Ismail](https://github.com/YoussefIsmail1337)
+- [Habiba Hassan](https://github.com/HabibaHassan02)
+- [Yasmiine Zaki ](https://github.com/yasmiinezaki)
 - [Ahmed Maher](https://github.com/AhmedMaher309)
+
