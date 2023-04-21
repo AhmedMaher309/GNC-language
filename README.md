@@ -24,6 +24,7 @@ Navigate to the source directory and run the makefile using the following comman
     make run
     
 To clean up the build artifacts run the following command:
+    
     make clean
 
 
