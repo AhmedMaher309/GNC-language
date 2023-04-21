@@ -19,11 +19,12 @@ install gcc compilers if not already installed on your machine using the followi
     sudo apt install build-essential
     sudo apt-get install manpages-dev
 
-Navigate to the source directory and run the project using the following commands:
+Navigate to the source directory and run the makefile using the following commands:
 
-    flex lexer.l
-    gcc lex.yy.c -lfl -o out
-    ./out
+    make run
+    
+To clean up the build artifacts run the following command:
+    make clean
 
 
 ## Features
