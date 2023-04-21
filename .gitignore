@@ -15,3 +15,4 @@ y.tab
 *.o
 *.exe
 *.out
+*.swap
