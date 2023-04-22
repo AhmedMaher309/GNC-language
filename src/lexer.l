@@ -27,10 +27,10 @@ CONSTANT    "const"
 /* ############ Rules ############ */
 
   /* Variable tokens section */
-{INTEGER}                                               { yylval = atoi(yytext); return INTEGER; }
-{FLOAT}                                                 { yylval = atof(yytext); return FLOAT; }
-{BOOL}                                                  { yylval = (strcmp(yytext, "true") == 0) ? 1 : 0; return BOOL; }
-{CHAR}                                                  { yylval = yytext[1]; return CHAR; } 
+{INTEGER}                                               { yylval.ivalue = atoi(yytext); return INTEGER; }
+{FLOAT}                                                 { yylval.fvalue = atof(yytext); return FLOAT; }
+{BOOL}                                                  { yylval.cvalue = (strcmp(yytext, "true") == 0) ? 1 : 0; return BOOL; }
+{CHAR}                                                  { yylval.cvalue = yytext[1]; return CHAR; } 
 
   /* Data type tokens */
 {TYPE_INT}                                              { return TYPE_INT; }
