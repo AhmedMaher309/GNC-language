@@ -2,9 +2,17 @@
 
 /* ### Auxiliary declarations ### */
 %{
+    #define ENABLE_YACC_DEBUG 0
+    #define ENABLE_LEX_DEBUG 0
+%}
+
+%{
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
+    extern yy_size_t yyleng;
+    int yydebug;
+    extern int yy_flex_debug;
     extern int yylex(void);
 %}
 
@@ -124,6 +132,10 @@ token:    INTEGER
 /* ############ Auxiliary Functions ############ */
 
 int main(int argc, char **argv) { 
+    yydebug = ENABLE_YACC_DEBUG
+    yy_flex_debug = ENABLE_LEX_DEBUG
+
+    
 
     yyparse();
     return 0;
