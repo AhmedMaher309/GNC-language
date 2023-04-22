@@ -10,10 +10,12 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
-    extern yy_size_t yyleng;
-    int yydebug;
+
+    extern int yyleng;
     extern int yy_flex_debug;
+    int yydebug;
     extern int yylex(void);
+    int yyerror(const char* s);
 %}
 
 /* ### Regular Definitions ### */
@@ -72,17 +74,17 @@
 %type <cvalue> tokens
 %type <cvalue> token
 
-%left PLUS, MINUS
-%left MULT, DIV
+%left PLUS MINUS
+%left MULT DIV
 %nonassoc EQU
 
 %start tokens
  
 %%
-/* ############ Rules ############ */
-tokens:   tokens token 
-        |               { /*NOTIHNG*/; };
-token:    INTEGER
+    /* ############ Rules ############ */
+tokens:   tokens token  { fprintf(stdout, "PROCESSED %c!\n", $$), $$ = $2; }
+        |               
+token:    INTEGER       { fprintf(stdout, "MATCH! %d, len = %d\n", $1, yyleng); $$ = $1; }
         | FLOAT
         | BOOL
         | CHAR
@@ -126,17 +128,20 @@ token:    INTEGER
         | UNTIL
         | VOID
         | IDENTIFIER
-        | COMMENT   { printf("MATCH!"); };
+        | COMMENT   
 
 %%
 /* ############ Auxiliary Functions ############ */
 
 int main(int argc, char **argv) { 
-    yydebug = ENABLE_YACC_DEBUG
-    yy_flex_debug = ENABLE_LEX_DEBUG
-
-    
+    yydebug = ENABLE_YACC_DEBUG;
+    yy_flex_debug = ENABLE_LEX_DEBUG;
 
     yyparse();
     return 0;
+}
+
+int yyerror(char const *s)
+{
+    return fprintf(stderr, "%s\n", s);
 }
