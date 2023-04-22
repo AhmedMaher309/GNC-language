@@ -3,9 +3,7 @@
 #include <stdio.h>
 
 double yylval;
-
 %}
-
 
 
 /*////////////////////////////////// Optional Section /////////////////////////////////////*/
@@ -44,29 +42,32 @@ CONSTANT    "const"
 #define ELSEIF           17
 #define SWITCH           18
 #define CASE             19
-#define PLUS_OP          20
-#define MINUS_OP         21
-#define MULT_OP          22
-#define DIV_OP           23
-#define MODULE_OP        24
-#define POWER_OP         25
-#define EQU_OP           26
-#define MORE_OP          27
-#define LESS_OP          28
-#define EQU_EQU_OP       29
-#define MORE_OR_EQU_OP   30
-#define LESS_OR_EQU_OP   31
-#define OPEN_CURL        32
-#define CLOSE_CURL       33
-#define OPEN_BRAC        34
-#define CLOSE_BRAC       35
-#define SEMICOLON        36
-#define COMMA            37
-#define REPEAT           38
-#define UNTIL            39
-#define VOID             40
-#define IDENTIFIER       41
-#define COMMENT          42
+#define PLUS             20
+#define MINUS            21
+#define MULT             22
+#define DIV              23
+#define MODULE           24
+#define POWER            25
+#define EQU              26
+#define MORE             27
+#define LESS             28
+#define EQU_EQU          29
+#define MORE_OR_EQU      30
+#define LESS_OR_EQU      31
+#define AND              32
+#define OR               33
+#define NOT              34
+#define OPEN_CURL        35
+#define CLOSE_CURL       36
+#define OPEN_BRAC        37
+#define CLOSE_BRAC       38
+#define SEMICOLON        39
+#define COMMA            40
+#define REPEAT           41
+#define UNTIL            42
+#define VOID             43
+#define IDENTIFIER       44
+#define COMMENT          45
 
 %}
 
@@ -102,20 +103,25 @@ switch                                                  { return SWITCH; }
 case                                                    { return CASE; }
 
  /* mathematical operators */
-"+"                                                     { return PLUS_OP; }
-"-"                                                     { return MINUS_OP; }
-"*"                                                     { return MULT_OP; }
-"/"                                                     { return DIV_OP; }
-"%"                                                     { return MODULE_OP; }
-"^"                                                     { return POWER_OP; }
-"="                                                     { return EQU_OP; }
+"+"                                                     { return PLUS; }
+"-"                                                     { return MINUS; }
+"*"                                                     { return MULT; }
+"/"                                                     { return DIV; }
+"%"                                                     { return MODULE; }
+"^"                                                     { return POWER; }
+"="                                                     { return EQU; }
 
- /* logical operators */
-">"                                                     { return MORE_OP; }
-"<"                                                     { return LESS_OP; }
-"=="                                                    { return EQU_EQU_OP; }
-"<="                                                    { return MORE_OR_EQU_OP; }
-">="                                                    { return LESS_OR_EQU_OP; }
+ /* comparison operators */
+">"                                                     { return MORE; }
+"<"                                                     { return LESS; }
+"=="                                                    { return EQU_EQU; }
+">="                                                    { return MORE_OR_EQU; }
+"<="                                                    { return LESS_OR_EQU; }
+
+ /* logical operators*/
+"&&"                                                    { return AND; }
+"||"                                                    { return OR; }
+"!"                                                     { return NOT; }
 
  /* scopes */
 "{"                                                     { return OPEN_CURL; }
