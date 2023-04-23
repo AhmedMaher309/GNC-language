@@ -39,7 +39,7 @@ CONSTANT    "const"
 {TYPE_BOOL}                                             { return TYPE_BOOL; }
 {CONSTANT}                                              { return CONSTANT; }
 
-    /* Loops and breaks*/
+    /* Loops and breaks */
 while                                                   { return WHILE; }
 for                                                     { return FOR; }
 do                                                      { return DO; }
@@ -83,7 +83,7 @@ case                                                    { return CASE; }
 ";"                                                     { return SEMICOLON; }
 ","                                                     { return COMMA; }
 
-    /* repeat until*/
+    /* repeat until */
 "repeat"                                                { return REPEAT; }
 "until"                                                 { return UNTIL; }
 
@@ -93,10 +93,10 @@ case                                                    { return CASE; }
     /* comments */
 "/*".*"*/"                                              { return COMMENT; }
 
-{IDENTIFIER}                                            { fprintf(stdout, "Identifier Token: %s\n", yytext); return IDENTIFIER; }
+{IDENTIFIER}                                            { fprintf(yyout, "Identifier Token: %s\n", yytext); return IDENTIFIER; }
  
 [ \t\r\n]                                               { /* ignore whitespace */; }
-.                                                       { fprintf(stdout, "invalid character\n"); }
+.                                                       { fprintf(yyout, "invalid character\n"); }
 
 %%
 /* ############ Auxiliary Functions ############ */

@@ -10,7 +10,8 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
-
+    extern FILE *yyin;
+    extern FILE *yyout;
     extern int yyleng;
     extern int yy_flex_debug;
     int yydebug;
@@ -82,9 +83,9 @@
  
 %%
     /* ############ Rules ############ */
-tokens:   tokens token  { fprintf(stdout, "PROCESSED %c!\n", $$), $$ = $2; }
+tokens:   tokens token  { fprintf(yyout, "PROCESSED %c!\n", $$), $$ = $2; }
         |               
-token:    INTEGER       { fprintf(stdout, "MATCH! %d, len = %d\n", $1, yyleng); $$ = $1; }
+token:    INTEGER       { fprintf(yyout, "MATCH! %d, len = %d\n", $1, yyleng); $$ = $1; }
         | FLOAT
         | BOOL
         | CHAR
@@ -137,7 +138,62 @@ int main(int argc, char **argv) {
     yydebug = ENABLE_YACC_DEBUG;
     yy_flex_debug = ENABLE_LEX_DEBUG;
 
+    if (argc == 1)
+    {
+        fprintf(stdout, "No arguments provided!\nInput will default to input.txt\nOutput will default to output.txt\n");
+        yyin = fopen("input.txt", "r");
+        if (yyin == NULL)
+        {
+            fprintf(stderr, "Input file not found!\nDefaulting input to terminal\n[use ctrl+D to exit]\n");
+            yyin = stdin;
+        }
+        yyout = fopen("output.txt", "w");
+    }
+    if (argc == 2)
+    {
+        fprintf(stdout, "Input set to \"%s\"\nOutput will default to output.txt\n",argv[1]);
+
+        yyin = fopen(argv[1], "r");
+        if (yyin == NULL)
+        {
+            fprintf(stderr, "Input file not found!\nDefaulting input to terminal\n[use ctrl+D to exit]\n");
+            yyin = stdin;
+        }
+        yyout = fopen("output.txt", "w");
+    }
+    if (argc == 3)
+    {
+        fprintf(stdout, "Input set to \"%s\"\nOutput set to \"%s\"\n", argv[1], argv[2]);
+
+        yyin = fopen(argv[1], "r");
+        if (yyin == NULL)
+        {
+            fprintf(stderr, "Input file not found!\nDefaulting input to terminal\n[use ctrl+D to exit]\n");
+            yyin = stdin;
+        }
+        yyout = fopen(argv[2], "w");
+    }
+    if (argc > 3)
+    {
+        fprintf(stdout, "Input set to \"%s\"\nOutput set to \"%s\"\nExtra arguments skipped!\n", argv[1], argv[2]);
+        
+        yyin = fopen(argv[1], "r");
+        if (yyin == NULL)
+        {
+            fprintf(stderr, "Input file not found!\nDefaulting input to terminal\n[use ctrl+D to exit]\n");
+            yyin = stdin;
+        }
+        yyout = fopen(argv[2], "w");
+    }
+
     yyparse();
+
+    if (yyin != stdin)
+    {
+        fclose(yyin);
+    }
+    fclose(yyout);
+
     return 0;
 }
 

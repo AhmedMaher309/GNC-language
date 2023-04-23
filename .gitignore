@@ -16,3 +16,6 @@ y.tab
 *.exe
 *.out
 *.swap
+
+# Ignore I/O files
+*.txt
