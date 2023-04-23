@@ -2,7 +2,10 @@
 
 /* ### Auxiliary declarations ### */
 %{
+    /*To enable yacc debugging (tracing the grammar rules) set the ENABLE_YACC_DEBUG flag to 1 (default: 0)*/
     #define ENABLE_YACC_DEBUG 0
+
+    /*To enable lex debugging (tracing the token rules) set the ENABLE_LEX_DEBUG flag to 1 (default: 0)*/
     #define ENABLE_LEX_DEBUG 0
 %}
 

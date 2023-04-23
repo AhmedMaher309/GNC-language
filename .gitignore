@@ -1,15 +1,15 @@
 # Ignore Flex-generated files
-lex.yy.c
-lex.yy.o
-lex.yy
-*.output
+src/lex.yy.c
+src/lex.yy.o
+src/lex.yy
+src/*.output
 
 # Ignore Bison-generated files
-y.tab.c
-y.tab.h
-y.tab.o
-y.tab
-*.output
+src/y.tab.c
+src/y.tab.h
+src/y.tab.o
+src/y.tab
+src/*.output
 
 # Ignore build artifacts
 *.o
@@ -18,4 +18,5 @@ y.tab
 *.swap
 
 # Ignore I/O files
-*.txt
+inputs/*.txt
+outputs/*.txt
