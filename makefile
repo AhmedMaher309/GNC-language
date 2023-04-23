@@ -16,7 +16,7 @@ cleanbuild: lexer_silent parser_silent
 
 # run rule
 run: 
-	./compiler.out ./inputs/$(IN) ./outputs/$(OUT)
+	./compiler.out ./$(IN) ./$(OUT)
 
 # clean rule
 clean: 

@@ -16,6 +16,7 @@ TYPE_INT    "int"
 TYPE_FLOAT  "float"
 TYPE_CHAR   "char"
 TYPE_BOOL   "bool"
+TYPE_VOID   "void"
 IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*
 INTEGER     [-+]?[0-9]+
 FLOAT       [-+]?[0-9]+.[0-9]+
@@ -37,12 +38,13 @@ CONSTANT    "const"
 {TYPE_FLOAT}                                            { return TYPE_FLOAT; }
 {TYPE_CHAR}                                             { return TYPE_CHAR; }
 {TYPE_BOOL}                                             { return TYPE_BOOL; }
+{TYPE_VOID}                                             { return TYPE_VOID; }
 {CONSTANT}                                              { return CONSTANT; }
 
+enum                                                    { return ENUM; }
     /* Loops and breaks */
 while                                                   { return WHILE; }
 for                                                     { return FOR; }
-do                                                      { return DO; }
 break                                                   { return BREAK; }
 continue                                                { return CONTINUE; }
  
@@ -52,6 +54,7 @@ else                                                    { return ELSE; }
 elseif                                                  { return ELSEIF; }
 switch                                                  { return SWITCH; }
 case                                                    { return CASE; }
+default                                                 { return DEFAULT; }
 
     /* mathematical operators */
 "+"                                                     { return PLUS; }
@@ -69,6 +72,11 @@ case                                                    { return CASE; }
 ">="                                                    { return MORE_OR_EQU; }
 "<="                                                    { return LESS_OR_EQU; }
 
+    /* others */ /* TODO: include these operators*/
+"!="                                                    { return NOT_EQU; }
+"++"                                                    { return INC; }
+"--"                                                    { return DEC; }
+
     /* logical operators */
 "&&"                                                    { return AND; }
 "||"                                                    { return OR; }
@@ -82,13 +90,13 @@ case                                                    { return CASE; }
 
 ";"                                                     { return SEMICOLON; }
 ","                                                     { return COMMA; }
+":"                                                     { return COLON; }
 
     /* repeat until */
 "repeat"                                                { return REPEAT; }
 "until"                                                 { return UNTIL; }
 
     /* functions keywords */
-"void"                                                  { return VOID; }
 
     /* comments */
 "/*".*"*/"                                              { return COMMENT; }

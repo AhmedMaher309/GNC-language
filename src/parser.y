@@ -33,51 +33,24 @@
 %token <fvalue> FLOAT
 %token <cvalue> BOOL
 %token <cvalue> CHAR
-%token <cvalue> TYPE_INT
-%token <cvalue> TYPE_FLOAT
-%token <cvalue> TYPE_CHAR
-%token <cvalue> TYPE_BOOL
-%token <cvalue> CONSTANT
-%token <cvalue> WHILE
-%token <cvalue> FOR
-%token <cvalue> DO
-%token <cvalue> BREAK
-%token <cvalue> CONTINUE
-%token <cvalue> IF
-%token <cvalue> ELSE
-%token <cvalue> ELSEIF
-%token <cvalue> SWITCH
-%token <cvalue> CASE
-%token <cvalue> PLUS
-%token <cvalue> MINUS
-%token <cvalue> MULT
-%token <cvalue> DIV
-%token <cvalue> MODULE
-%token <cvalue> POWER
-%token <cvalue> EQU
-%token <cvalue> MORE
-%token <cvalue> LESS
-%token <cvalue> EQU_EQU
-%token <cvalue> MORE_OR_EQU
-%token <cvalue> LESS_OR_EQU
-%token <cvalue> AND
-%token <cvalue> OR
-%token <cvalue> NOT
-%token <cvalue> OPEN_CURL
-%token <cvalue> CLOSE_CURL
-%token <cvalue> OPEN_BRAC
-%token <cvalue> CLOSE_BRAC
-%token <cvalue> SEMICOLON
-%token <cvalue> COMMA
-%token <cvalue> REPEAT
-%token <cvalue> UNTIL
-%token <cvalue> VOID
-%token <cvalue> IDENTIFIER
-%token <cvalue> COMMENT
+%token TYPE_INT TYPE_FLOAT TYPE_CHAR TYPE_BOOL TYPE_VOID
+%token CONSTANT
+%token ENUM
+%token WHILE FOR BREAK CONTINUE 
+%token IF ELSE ELSEIF
+%token SWITCH CASE DEFAULT
+%token MINUS MULT PLUS DIV MODULE POWER EQU INC DEC
+%token MORE LESS EQU_EQU MORE_OR_EQU LESS_OR_EQU NOT_EQU
+%token AND OR NOT
+%token OPEN_CURL CLOSE_CURL OPEN_BRAC CLOSE_BRAC SEMICOLON COMMA COLON
+%token REPEAT UNTIL
+%token IDENTIFIER
+%token COMMENT
 
 %type <cvalue> tokens
 %type <cvalue> token
 
+/*to specify the precedence and associativity of operators*/
 %left PLUS MINUS
 %left MULT DIV
 %nonassoc EQU
@@ -86,53 +59,127 @@
  
 %%
     /* ############ Rules ############ */
-tokens:   tokens token  { fprintf(yyout, "PROCESSED %c!\n", $$), $$ = $2; }
-        |               
-token:    INTEGER       { fprintf(yyout, "MATCH! %d, len = %d\n", $1, yyleng); $$ = $1; }
-        | FLOAT
-        | BOOL
-        | CHAR
-        | TYPE_INT
-        | TYPE_FLOAT
-        | TYPE_CHAR
-        | TYPE_BOOL
-        | CONSTANT
-        | WHILE
-        | FOR
-        | DO
-        | BREAK
-        | CONTINUE
-        | IF
-        | ELSE
-        | ELSEIF
-        | SWITCH
-        | CASE
-        | PLUS
-        | MINUS
-        | MULT
-        | DIV
-        | MODULE
-        | POWER
-        | EQU
-        | MORE
-        | LESS
-        | EQU_EQU
-        | MORE_OR_EQU
-        | LESS_OR_EQU
-        | AND
-        | OR
-        | NOT
-        | OPEN_CURL
-        | CLOSE_CURL
-        | OPEN_BRAC
-        | CLOSE_BRAC
-        | SEMICOLON
-        | COMMA
-        | REPEAT
-        | UNTIL
-        | VOID
-        | IDENTIFIER
-        | COMMENT   
+tokens:   tokens token
+        | token
+        | /*empty*/
+        ;
+
+token:  enum_declaration
+        | function_prototype SEMICOLON
+        | function_declaration
+        | in_scope_statement
+        ;
+
+in_scope_statements: in_scope_statements in_scope_statement
+                    | in_scope_statement
+                    | /*empty*/
+                    ;
+
+in_scope_statement:
+        variable_declaration SEMICOLON
+        | constant_declaration SEMICOLON
+        | expression SEMICOLON
+        | assignment SEMICOLON
+        | function_call SEMICOLON
+        | if_statement
+        | while_statement
+        | for_statement
+        | switch_statement
+        | repeat_until_statement SEMICOLON
+        | enum_variable_declaration SEMICOLON
+        | COMMENT
+        | BREAK SEMICOLON
+        | CONTINUE SEMICOLON
+;
+
+/*
+enum week_days {
+    MONDAY = 1,
+    TUESDAY,
+    WEDNESDAY = 5,
+    THURSDAY,
+    FRIDAY,
+    SATURDAY = 10,
+    SUNDAY
+}; 
+*//*****/
+/*****/ /* TODO: add support for return statement */
+
+in_enum_statement:
+    IDENTIFIER EQU INTEGER
+    | IDENTIFIER 
+    | IDENTIFIER EQU INTEGER COMMA in_enum_statement
+    | IDENTIFIER COMMA in_enum_statement
+    ;
+
+enum_variable_declaration: ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER; /* enum colors my_color = RED; */
+
+type: TYPE_INT | TYPE_FLOAT | TYPE_CHAR | TYPE_BOOL | TYPE_VOID;
+parameter_or_empty: parameters | /*empty*/;
+parameters: type IDENTIFIER | type IDENTIFIER COMMA parameters;
+
+argument_or_empty: arguments | /*empty*/;
+arguments: expression | expression COMMA arguments;
+
+enum_declaration: ENUM IDENTIFIER OPEN_CURL in_enum_statement CLOSE_CURL SEMICOLON;
+function_prototype: type IDENTIFIER OPEN_BRAC parameter_or_empty CLOSE_BRAC;
+function_declaration: function_prototype OPEN_CURL in_scope_statements CLOSE_CURL;
+variable_declaration: type IDENTIFIER | type IDENTIFIER EQU expression| type IDENTIFIER EQU function_call;
+constant_declaration: CONSTANT type IDENTIFIER EQU constant_right_hand_side; 
+
+expression: operand 
+            | expression PLUS expression 
+            | expression MINUS expression 
+            | expression MULT expression 
+            | expression DIV expression 
+            | expression MODULE expression 
+            | expression POWER expression
+            | for_loop_expression1
+            | operand INC
+            | operand DEC
+            | OPEN_BRAC expression CLOSE_BRAC
+            ;
+
+for_loop_expression1: 
+            expression LESS_OR_EQU expression
+            | expression MORE_OR_EQU expression 
+            | expression LESS expression 
+            | expression MORE expression 
+            | expression EQU_EQU expression
+            | expression AND expression 
+            | expression OR expression 
+            | expression NOT_EQU expression
+            | NOT expression  
+            ;
+
+operand: IDENTIFIER | constant_right_hand_side | function_call ;
+constant_right_hand_side: INTEGER | FLOAT | CHAR | BOOL ; /*****/ /*want to add more expressions*/
+
+assignment: IDENTIFIER EQU expression;
+
+function_call: IDENTIFIER OPEN_BRAC argument_or_empty CLOSE_BRAC;
+
+if_statement: IF OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL 
+              | IF OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL ELSE OPEN_CURL in_scope_statements CLOSE_CURL 
+              | IF OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL
+                elseif_statment
+                ELSE OPEN_CURL in_scope_statements CLOSE_CURL;
+
+elseif_statment: ELSEIF OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL 
+                 | elseif_statment ELSEIF OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL;
+
+while_statement: WHILE OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL;
+
+for_statement: FOR OPEN_BRAC counter_variable SEMICOLON for_loop_expression1 SEMICOLON expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL; /*****//* specific expression for first expression?*/
+counter_variable: variable_declaration | assignment;
+
+switch_statement: SWITCH OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_switch_statement CLOSE_CURL;
+in_switch_statement: cases| cases default;
+cases: case |case cases;
+case: CASE operand COLON  in_scope_statements BREAK SEMICOLON;
+default: DEFAULT COLON in_scope_statements BREAK SEMICOLON;
+
+repeat_until_statement: REPEAT OPEN_CURL in_scope_statements CLOSE_CURL UNTIL OPEN_BRAC expression CLOSE_BRAC;
 
 %%
 /* ############ Auxiliary Functions ############ */
@@ -147,7 +194,7 @@ int main(int argc, char **argv) {
         yyin = fopen("input.txt", "r");
         if (yyin == NULL)
         {
-            fprintf(stderr, "Input file not found!\nDefaulting input to terminal\n[use ctrl+D to exit]\n");
+            fprintf(stderr, "Input file not found!\nDefaulting input to factorinal\n[use ctrl+D to exit]\n");
             yyin = stdin;
         }
         yyout = fopen("output.txt", "w");
@@ -159,7 +206,7 @@ int main(int argc, char **argv) {
         yyin = fopen(argv[1], "r");
         if (yyin == NULL)
         {
-            fprintf(stderr, "Input file not found!\nDefaulting input to terminal\n[use ctrl+D to exit]\n");
+            fprintf(stderr, "Input file not found!\nDefaulting input to factorinal\n[use ctrl+D to exit]\n");
             yyin = stdin;
         }
         yyout = fopen("output.txt", "w");
@@ -171,7 +218,7 @@ int main(int argc, char **argv) {
         yyin = fopen(argv[1], "r");
         if (yyin == NULL)
         {
-            fprintf(stderr, "Input file not found!\nDefaulting input to terminal\n[use ctrl+D to exit]\n");
+            fprintf(stderr, "Input file not found!\nDefaulting input to factorinal\n[use ctrl+D to exit]\n");
             yyin = stdin;
         }
         yyout = fopen(argv[2], "w");
@@ -183,7 +230,7 @@ int main(int argc, char **argv) {
         yyin = fopen(argv[1], "r");
         if (yyin == NULL)
         {
-            fprintf(stderr, "Input file not found!\nDefaulting input to terminal\n[use ctrl+D to exit]\n");
+            fprintf(stderr, "Input file not found!\nDefaulting input to factorinal\n[use ctrl+D to exit]\n");
             yyin = stdin;
         }
         yyout = fopen(argv[2], "w");
@@ -202,5 +249,6 @@ int main(int argc, char **argv) {
 
 int yyerror(char const *s)
 {
+    fprintf(stderr, "%s\n", "HIII");
     return fprintf(stderr, "%s\n", s);
 }
