@@ -19,13 +19,33 @@ install gcc compilers if not already installed on your machine using the followi
     sudo apt install build-essential
     sudo apt-get install manpages-dev
 
-Navigate to the source directory and run the makefile using the following commands:
+## Running the project
 
-    make run
-    
-To clean up the build artifacts run the following command:
+Build the binary file using the following command:
+
+    make build
+
+To clean up the build artifacts, run the following command:
     
     make clean
+
+**Note:** If you'd like to build without printing all the build information and clean the build artifacts automatically, run the following command:
+
+    make cleanbuild
+
+To run the built binary, run the command:
+
+    make run IN=input.txt OUT=output.txt
+
+* **"IN="** is an optional argument to set the name of the input file in the "inputs/" directory.
+**Note:** If the input file is not found in the "inputs/" directory, the program defaults to input from the terminal.
+
+* **"OUT="** is an optional argument to set the name of the output file in the "outputs/" directory.
+ **Note:** If the output file is not found in the "output/" directory, the program creates it.
+
+To clear the project (delete the binary file, build artifacts, and input/output files), run the following command:
+
+    make clear
 
 
 ## Features
@@ -48,7 +68,8 @@ The project is organized as follows:
     src/
         lexer.l        # Flex lexer file
         parser.y       # Bison parser file
-        Makefile       # Makefile for building the project
+
+    makefile       # Makefile for building the project
     README.md          # This file
 
 
@@ -56,6 +77,6 @@ The project is organized as follows:
 
 - [Youssef Ismail](https://github.com/YoussefIsmail1337)
 - [Habiba Hassan](https://github.com/HabibaHassan02)
-- [Yasmiine Zaki ](https://github.com/yasmiinezaki)
+- [Yasmiine Zaki](https://github.com/yasmiinezaki)
 - [Ahmed Maher](https://github.com/AhmedMaher309)
 
