@@ -53,6 +53,10 @@ elseif                                                  { return ELSEIF; }
 switch                                                  { return SWITCH; }
 case                                                    { return CASE; }
 
+
+     /* printing */
+print                                                   { return PRINT; }
+
     /* mathematical operators */
 "+"                                                     { return PLUS; }
 "-"                                                     { return MINUS; }

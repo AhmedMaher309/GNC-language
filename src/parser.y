@@ -31,52 +31,54 @@
 
 %token <ivalue> INTEGER
 %token <fvalue> FLOAT
-%token <cvalue> BOOL
+%token <ivalue> BOOL
 %token <cvalue> CHAR
-%token <cvalue> TYPE_INT
-%token <cvalue> TYPE_FLOAT
-%token <cvalue> TYPE_CHAR
-%token <cvalue> TYPE_BOOL
-%token <cvalue> CONSTANT
-%token <cvalue> WHILE
-%token <cvalue> FOR
-%token <cvalue> DO
-%token <cvalue> BREAK
-%token <cvalue> CONTINUE
-%token <cvalue> IF
-%token <cvalue> ELSE
-%token <cvalue> ELSEIF
-%token <cvalue> SWITCH
-%token <cvalue> CASE
-%token <cvalue> PLUS
-%token <cvalue> MINUS
-%token <cvalue> MULT
-%token <cvalue> DIV
-%token <cvalue> MODULE
-%token <cvalue> POWER
-%token <cvalue> EQU
-%token <cvalue> MORE
-%token <cvalue> LESS
-%token <cvalue> EQU_EQU
-%token <cvalue> MORE_OR_EQU
-%token <cvalue> LESS_OR_EQU
-%token <cvalue> AND
-%token <cvalue> OR
-%token <cvalue> NOT
-%token <cvalue> OPEN_CURL
-%token <cvalue> CLOSE_CURL
-%token <cvalue> OPEN_BRAC
-%token <cvalue> CLOSE_BRAC
-%token <cvalue> SEMICOLON
-%token <cvalue> COMMA
-%token <cvalue> REPEAT
-%token <cvalue> UNTIL
-%token <cvalue> VOID
-%token <cvalue> IDENTIFIER
-%token <cvalue> COMMENT
+%token TYPE_INT
+%token TYPE_FLOAT
+%token TYPE_CHAR
+%token TYPE_BOOL
+%token CONSTANT
+%token WHILE
+%token FOR
+%token DO
+%token BREAK
+%token CONTINUE
+%token IF
+%token ELSE
+%token ELSEIF
+%token SWITCH
+%token CASE
+%token PRINT
+%token PLUS
+%token MINUS
+%token MULT
+%token DIV
+%token MODULE
+%token POWER
+%token EQU
+%token MORE
+%token LESS
+%token EQU_EQU
+%token MORE_OR_EQU
+%token LESS_OR_EQU
+%token AND
+%token OR
+%token NOT
+%token OPEN_CURL
+%token CLOSE_CURL
+%token OPEN_BRAC
+%token CLOSE_BRAC
+%token SEMICOLON
+%token COMMA
+%token REPEAT
+%token UNTIL
+%token VOID
+%token IDENTIFIER
+%token COMMENT
 
-%type <cvalue> tokens
-%type <cvalue> token
+%type <ivalue> itoken
+%type <fvalue> ftoken
+%type <cvalue> ctoken
 
 %left PLUS MINUS
 %left MULT DIV
@@ -86,12 +88,12 @@
  
 %%
     /* ############ Rules ############ */
-tokens:   tokens token  { fprintf(yyout, "PROCESSED %c!\n", $$), $$ = $2; }
-        |               
-token:    INTEGER       { fprintf(yyout, "MATCH! %d, len = %d\n", $1, yyleng); $$ = $1; }
-        | FLOAT
-        | BOOL
-        | CHAR
+tokens:   tokens token  { fprintf(yyout, "PROCESSED A TOKEN!\n"); }
+        | /*empty*/
+        
+token:    itoken       { fprintf(yyout, "MATCHED INT! %d, len = %d\n", $1, yyleng); }
+        | ftoken       { fprintf(yyout, "MATCHED FLOAT! %f, len = %d\n", $1, yyleng); }
+        | ctoken       { fprintf(yyout, "MATCHED CHAR! %c, len = %d\n", $1, yyleng); }
         | TYPE_INT
         | TYPE_FLOAT
         | TYPE_CHAR
@@ -107,6 +109,7 @@ token:    INTEGER       { fprintf(yyout, "MATCH! %d, len = %d\n", $1, yyleng); $
         | ELSEIF
         | SWITCH
         | CASE
+        | PRINT
         | PLUS
         | MINUS
         | MULT
@@ -133,6 +136,14 @@ token:    INTEGER       { fprintf(yyout, "MATCH! %d, len = %d\n", $1, yyleng); $
         | VOID
         | IDENTIFIER
         | COMMENT   
+
+itoken:   INTEGER       { $$ = $1; }
+        | BOOL          { $$ = $1; }
+
+ftoken:   FLOAT         { $$ = $1; }
+
+ctoken:   CHAR          { $$ = $1; }
+
 
 %%
 /* ############ Auxiliary Functions ############ */
