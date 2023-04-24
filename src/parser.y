@@ -53,7 +53,14 @@
 /*to specify the precedence and associativity of operators*/
 %left PLUS MINUS
 %left MULT DIV
-%nonassoc EQU
+%left MODULE
+%right POWER
+%right INC DEC
+%left EQU_EQU NOT_EQU MORE LESS MORE_OR_EQU LESS_OR_EQU
+%right EQU 
+%nonassoc OR 
+%nonassoc AND
+%nonassoc NOT 
 
 %start tokens
  
@@ -61,7 +68,6 @@
     /* ############ Rules ############ */
 tokens:   tokens token
         | token
-        | /*empty*/
         ;
 
 token:  enum_declaration
@@ -70,9 +76,9 @@ token:  enum_declaration
         | in_scope_statement
         ;
 
-in_scope_statements: in_scope_statements in_scope_statement
-                    | in_scope_statement
-                    | /*empty*/
+in_scope_statements: in_scope_statement 
+                    |in_scope_statements in_scope_statement 
+
                     ;
 
 in_scope_statement:
@@ -80,7 +86,7 @@ in_scope_statement:
         | constant_declaration SEMICOLON
         | expression SEMICOLON
         | assignment SEMICOLON
-        | function_call SEMICOLON
+        /*| function_call SEMICOLON*/
         | if_statement
         | while_statement
         | for_statement
@@ -89,7 +95,7 @@ in_scope_statement:
         | enum_variable_declaration SEMICOLON
         | COMMENT
         | BREAK SEMICOLON
-        | CONTINUE SEMICOLON
+        | CONTINUE SEMICOLON /*****//* to add them spcefically in for and while loops*/
 ;
 
 /*
@@ -115,16 +121,16 @@ in_enum_statement:
 enum_variable_declaration: ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER; /* enum colors my_color = RED; */
 
 type: TYPE_INT | TYPE_FLOAT | TYPE_CHAR | TYPE_BOOL | TYPE_VOID;
-parameter_or_empty: parameters | /*empty*/;
+parameter_or_empty: OPEN_BRAC parameters CLOSE_BRAC | OPEN_BRAC CLOSE_BRAC ;
 parameters: type IDENTIFIER | type IDENTIFIER COMMA parameters;
 
-argument_or_empty: arguments | /*empty*/;
+argument_or_empty:  OPEN_BRAC arguments CLOSE_BRAC | OPEN_BRAC CLOSE_BRAC ;
 arguments: expression | expression COMMA arguments;
 
 enum_declaration: ENUM IDENTIFIER OPEN_CURL in_enum_statement CLOSE_CURL SEMICOLON;
-function_prototype: type IDENTIFIER OPEN_BRAC parameter_or_empty CLOSE_BRAC;
+function_prototype: type IDENTIFIER parameter_or_empty;
 function_declaration: function_prototype OPEN_CURL in_scope_statements CLOSE_CURL;
-variable_declaration: type IDENTIFIER | type IDENTIFIER EQU expression| type IDENTIFIER EQU function_call;
+variable_declaration: type IDENTIFIER | type IDENTIFIER EQU expression/*| type IDENTIFIER EQU function_call*/;
 constant_declaration: CONSTANT type IDENTIFIER EQU constant_right_hand_side; 
 
 expression: operand 
@@ -134,14 +140,9 @@ expression: operand
             | expression DIV expression 
             | expression MODULE expression 
             | expression POWER expression
-            | for_loop_expression1
             | operand INC
             | operand DEC
-            | OPEN_BRAC expression CLOSE_BRAC
-            ;
-
-for_loop_expression1: 
-            expression LESS_OR_EQU expression
+            |expression LESS_OR_EQU expression
             | expression MORE_OR_EQU expression 
             | expression LESS expression 
             | expression MORE expression 
@@ -150,6 +151,7 @@ for_loop_expression1:
             | expression OR expression 
             | expression NOT_EQU expression
             | NOT expression  
+            | OPEN_BRAC expression CLOSE_BRAC
             ;
 
 operand: IDENTIFIER | constant_right_hand_side | function_call ;
@@ -157,20 +159,22 @@ constant_right_hand_side: INTEGER | FLOAT | CHAR | BOOL ; /*****/ /*want to add 
 
 assignment: IDENTIFIER EQU expression;
 
-function_call: IDENTIFIER OPEN_BRAC argument_or_empty CLOSE_BRAC;
+function_call: IDENTIFIER argument_or_empty;
 
-if_statement: IF OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL 
-              | IF OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL ELSE OPEN_CURL in_scope_statements CLOSE_CURL 
+statements_or_empty: OPEN_CURL in_scope_statements CLOSE_CURL | OPEN_CURL CLOSE_CURL ;
+
+if_statement: IF OPEN_BRAC expression CLOSE_BRAC statements_or_empty
+              | IF OPEN_BRAC expression CLOSE_BRAC   statements_or_empty ELSE   statements_or_empty 
               | IF OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL
                 elseif_statment
                 ELSE OPEN_CURL in_scope_statements CLOSE_CURL;
 
-elseif_statment: ELSEIF OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL 
+elseif_statment: ELSEIF OPEN_BRAC expression CLOSE_BRAC   statements_or_empty 
                  | elseif_statment ELSEIF OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL;
 
 while_statement: WHILE OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL;
 
-for_statement: FOR OPEN_BRAC counter_variable SEMICOLON for_loop_expression1 SEMICOLON expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL; /*****//* specific expression for first expression?*/
+for_statement: FOR OPEN_BRAC counter_variable SEMICOLON expression SEMICOLON expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL; /*****//* specific expression for first expression?*/
 counter_variable: variable_declaration | assignment;
 
 switch_statement: SWITCH OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_switch_statement CLOSE_CURL;
@@ -179,7 +183,7 @@ cases: case |case cases;
 case: CASE operand COLON  in_scope_statements BREAK SEMICOLON;
 default: DEFAULT COLON in_scope_statements BREAK SEMICOLON;
 
-repeat_until_statement: REPEAT OPEN_CURL in_scope_statements CLOSE_CURL UNTIL OPEN_BRAC expression CLOSE_BRAC;
+repeat_until_statement: REPEAT   statements_or_empty UNTIL OPEN_BRAC expression CLOSE_BRAC;
 
 %%
 /* ############ Auxiliary Functions ############ */
