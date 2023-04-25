@@ -120,17 +120,33 @@ in_enum_statement:
 
 enum_variable_declaration: ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER; /* enum colors my_color = RED; */
 
-type: TYPE_INT | TYPE_FLOAT | TYPE_CHAR | TYPE_BOOL | TYPE_VOID;
-parameter_or_empty: OPEN_BRAC parameters CLOSE_BRAC | OPEN_BRAC CLOSE_BRAC ;
-parameters: type IDENTIFIER | type IDENTIFIER COMMA parameters;
+type: TYPE_INT
+    | TYPE_FLOAT
+    | TYPE_CHAR
+    | TYPE_BOOL 
+    | TYPE_VOID;
 
-argument_or_empty:  OPEN_BRAC arguments CLOSE_BRAC | OPEN_BRAC CLOSE_BRAC ;
-arguments: expression | expression COMMA arguments;
+parameter_or_empty: OPEN_BRAC parameters CLOSE_BRAC 
+		  | OPEN_BRAC CLOSE_BRAC ;
+
+parameters: type IDENTIFIER 
+	  | type IDENTIFIER COMMA parameters;
+
+argument_or_empty:  OPEN_BRAC arguments CLOSE_BRAC 
+		 | OPEN_BRAC CLOSE_BRAC ;
+
+arguments: expression 
+	 | expression COMMA arguments;
 
 enum_declaration: ENUM IDENTIFIER OPEN_CURL in_enum_statement CLOSE_CURL SEMICOLON;
+
 function_prototype: type IDENTIFIER parameter_or_empty;
+
 function_declaration: function_prototype OPEN_CURL in_scope_statements CLOSE_CURL;
-variable_declaration: type IDENTIFIER | type IDENTIFIER EQU expression/*| type IDENTIFIER EQU function_call*/;
+
+variable_declaration: type IDENTIFIER 
+		    | type IDENTIFIER EQU expression;
+
 constant_declaration: CONSTANT type IDENTIFIER EQU constant_right_hand_side; 
 
 expression: operand 
@@ -142,7 +158,7 @@ expression: operand
             | expression POWER expression
             | operand INC
             | operand DEC
-            |expression LESS_OR_EQU expression
+            | expression LESS_OR_EQU expression
             | expression MORE_OR_EQU expression 
             | expression LESS expression 
             | expression MORE expression 
@@ -154,8 +170,14 @@ expression: operand
             | OPEN_BRAC expression CLOSE_BRAC
             ;
 
-operand: IDENTIFIER | constant_right_hand_side | function_call ;
-constant_right_hand_side: INTEGER | FLOAT | CHAR | BOOL ; /*****/ /*want to add more expressions*/
+operand: IDENTIFIER 
+       | constant_right_hand_side 
+       | function_call ;
+
+constant_right_hand_side: INTEGER 
+			| FLOAT 
+                        | CHAR 
+                        | BOOL ;
 
 assignment: IDENTIFIER EQU expression;
 
@@ -175,15 +197,24 @@ elseif_statment: ELSEIF OPEN_BRAC expression CLOSE_BRAC   statements_or_empty
 while_statement: WHILE OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL;
 
 for_statement: FOR OPEN_BRAC counter_variable SEMICOLON expression SEMICOLON expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL; /*****//* specific expression for first expression?*/
-counter_variable: variable_declaration | assignment;
+
+counter_variable: variable_declaration 
+		| assignment;
 
 switch_statement: SWITCH OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_switch_statement CLOSE_CURL;
-in_switch_statement: cases| cases default;
-cases: case |case cases;
+
+in_switch_statement: cases
+		   | cases default;
+
+cases: case 
+     |case cases;
+
 case: CASE operand COLON  in_scope_statements BREAK SEMICOLON;
+
 default: DEFAULT COLON in_scope_statements BREAK SEMICOLON;
 
 repeat_until_statement: REPEAT   statements_or_empty UNTIL OPEN_BRAC expression CLOSE_BRAC;
+
 
 %%
 /* ############ Auxiliary Functions ############ */
