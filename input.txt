@@ -1,6 +1,5 @@
 /* Constants and enums */
 enum months { JAN, FEB, MAR, APR, MAY, JUN, JUL, AUG, SEP, OCT, NOV, DEC };
-
 /* Function declarations */
 int add(int a, int b);
 int factorial(int n);
@@ -10,33 +9,35 @@ int main() {
     const int z = 10;
     enum months current_month = APR;
 
-    enum months current_month = APR;
-
     /* Mathematical and logical expressions */
     int result = x * y + PI;
     int condition = (x > 0 && y < 5) || z == 10;
     /* If-then-else statement */
     if (condition) {
         int test = 4;
+        int x = y;
+        int x = add(1,2);
     } else {
-
     }
-        /* While loop */
+            /* While loop */
     int i = 0;
     while (i < 5) {
         i++;
+        if (i<3){
+            continue;
+        }
     }
-
+    
     /* Repeat-until loop */
     int j = 0;
     repeat {
-        j++;
     } until (j > 5);
 
-        /* For loop */
+            /* For loop */
     for (int k = 0; k < 5; k++) {
+        int x = y;
     }
-    /* Switch statement */
+        /* Switch statement */
     switch (current_month) {
         case JAN:
             int x = 0;
@@ -48,8 +49,7 @@ int main() {
             int x = 0;
             break;
     }
-
-        /* Function call */
+     /* Function call */
     int sum = add(x, z);
     int fact = factorial(x);
 }
