@@ -96,11 +96,13 @@ for_stmt_list: stmt_list BREAK ';'
  /*/////////////////// third degree /////////////////////////////*/
 
 genn_stmt:  type IDENTIFIER ';'
-           | type IDENTIFIER EQU IDENTIFIER ';'
-           | type IDENTIFIER EQU rvalue ';'
+           /*| type IDENTIFIER EQU IDENTIFIER ';'
+           | type IDENTIFIER EQU rvalue ';' */
            | CONSTANT type IDENTIFIER EQU IDENTIFIER ';'
            | IDENTIFIER EQU expr ';'
            | type IDENTIFIER EQU expr ';'
+           | type IDENTIFIER EQU func_call ';'
+           | IDENTIFIER EQU func_call ';'
            | expr ';'
            ;
 
