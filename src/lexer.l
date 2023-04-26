@@ -55,7 +55,6 @@ elseif                                                  { return ELSEIF; }
 switch                                                  { return SWITCH; }
 case                                                    { return CASE; }
 default                                                 { return DEFAULT; }
-break                                                   { return BREAK;  }
 return                                                  { return RETURN; }
 
     /* mathematical operators */
@@ -84,15 +83,8 @@ return                                                  { return RETURN; }
 "||"                                                    { return OR; }
 "!"                                                     { return NOT; }
 
-    /* scopes */
-"{"                                                     { return OPEN_CURL; }
-"}"                                                     { return CLOSE_CURL; }
-"("                                                     { return OPEN_BRAC; }
-")"                                                     { return CLOSE_BRAC; }
-
-";"                                                     { return SEMICOLON; }
-","                                                     { return COMMA; }
-":"                                                     { return COLON; }
+    /* scopes and special chars*/
+[();{}:,]                                               { return *yytext; }
 
     /* repeat until */
 "repeat"                                                { return REPEAT; }

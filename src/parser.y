@@ -41,7 +41,6 @@
 %token MINUS MULT PLUS DIV MODULE POWER EQU INC DEC
 %token MORE LESS EQU_EQU MORE_OR_EQU LESS_OR_EQU NOT_EQU
 %token AND OR NOT
-%token OPEN_CURL CLOSE_CURL OPEN_BRAC CLOSE_BRAC SEMICOLON COMMA COLON
 %token REPEAT UNTIL
 %token IDENTIFIER
 %token COMMENT
@@ -104,6 +103,7 @@ genn_stmt:  type IDENTIFIER ';'
            | expr ';'
            ;
 
+
 func_stmt: func_proto
 	   | func_define
            | func_call
@@ -127,6 +127,7 @@ func_proto: type IDENTIFIER '(' parameters ')' ';'
 	        | TYPE_VOID IDENTIFIER '(' parameters ')' ';' 
             ;
 
+
 func_define: type IDENTIFIER '(' parameters ')' '{' stmt_list '}'
             | TYPE_VOID IDENTIFIER '(' parameters ')' '{' stmt_list '}'
             | type IDENTIFIER '(' parameters ')' '{' func_stmt_list '}'
@@ -142,19 +143,20 @@ for_proto: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')';
 	      | FOR '(' expr ';' expr ';' expr ')';
           ;
 
-for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' stmt_list '}' ';'
-	        | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' for_stmt_list '}' ';'
-            | FOR '(' expr ';' expr ';' expr ')' '{' stmt_list '}' ';'
-            | FOR '(' expr ';' expr ';' expr ')' '{' for_stmt_list '}' ';' 
+for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' stmt_list '}' 
+	        | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' for_stmt_list '}' 
+            | FOR '(' expr ';' expr ';' expr ')' '{' stmt_list '}' 
+            | FOR '(' expr ';' expr ';' expr ')' '{' for_stmt_list '}' 
             ;
 
 
 if_proto: IF '(' expr ')' ';' ;
         ;
-
-if_define: IF '(' expr ')' '{' stmt_list '}' ';'
-	       |  IF '(' expr ')' '{' '}' ';'
-           ;
+ /*not totally complete */
+if_define: IF '(' expr ')' '{' stmt_list '}' 
+	       |  IF '(' expr ')' '{' '}' 
+           |  IF  '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}'
+            ;
 
 
 enum_declare: ENUM IDENTIFIER '{' enum_list '}' ';' ;
