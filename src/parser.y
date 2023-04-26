@@ -81,16 +81,16 @@ stmt: genn_stmt
       | enum_stmt
       ;
 
-stmt_group: stmt
-	        | stmt_group stmt
-            ;
+stmt_list: stmt
+         | stmt_list stmt
+         ;
 
-func_stmt_group: RETURN expr ';'
-	             | stmt func_stmt_group 
+func_stmt_list: RETURN expr ';'
+	             | stmt func_stmt_list 
                  ;
 
-for_stmt_group: BREAK ';' 
-               |stmt for_stmt_group
+for_stmt_list: BREAK ';' 
+               |stmt for_stmt_list
                ;
 
  /*/////////////////// third degree /////////////////////////////*/
@@ -125,11 +125,14 @@ func_proto: type IDENTIFIER '(' parameters ')' ';'
 	        | TYPE_VOID IDENTIFIER '(' parameters ')' ';' 
             ;
 
-func_define: type IDENTIFIER '(' parameters ')' '{'func_stmt_group '}' ';'
-	         | TYPE_VOID IDENTIFIER '(' parameters ')' '{' stmt_group '}' ';'
-             ;
+func_define: type IDENTIFIER '(' parameters ')' '{' stmt_list '}'
+            | TYPE_VOID IDENTIFIER '(' parameters ')' '{' stmt_list '}'
+            | type IDENTIFIER '(' parameters ')' '{' func_stmt_list '}'
+            | TYPE_VOID IDENTIFIER '(' parameters ')' '{' func_stmt_list '}'
+            ;
+        
 
-func_call: IDENTIFIER '(' expr_group ')' ;
+func_call: IDENTIFIER '(' expr_list ')' ;
 
 
 
@@ -137,17 +140,17 @@ for_proto: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')';
 	      | FOR '(' expr ';' expr ';' expr ')';
           ;
 
-for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' for_stmt_group '}' ';'
-	        | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' stmt_group '}' ';'
-            | FOR '(' expr ';' expr ';' expr ')' '{' for_stmt_group '}' ';'
-            | FOR '(' expr ';' expr ';' expr ')' '{' stmt_group '}' ';' 
+for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' stmt_list '}' ';'
+	        | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' for_stmt_list '}' ';'
+            | FOR '(' expr ';' expr ';' expr ')' '{' stmt_list '}' ';'
+            | FOR '(' expr ';' expr ';' expr ')' '{' for_stmt_list '}' ';' 
             ;
 
 
 if_proto: IF '(' expr ')' ';' ;
         ;
 
-if_define: IF '(' expr ')' '{' stmt_group '}' ';'
+if_define: IF '(' expr ')' '{' stmt_list '}' ';'
 	       |  IF '(' expr ')' '{' '}' ';'
            ;
 
@@ -178,9 +181,9 @@ enum_list: IDENTIFIER
            | IDENTIFIER ',' enum_list
            ;
 
-expr_group: expr 
-            | expr ',' expr_group
-          ;
+expr_list: expr
+         | expr_list ',' expr
+         ;
 
 expr: rvalue
      | IDENTIFIER
@@ -194,12 +197,13 @@ expr: rvalue
      | expr NOT_EQU expr 
      | expr MORE_OR_EQU expr
      | expr LESS_OR_EQU expr
-     | expr INC 
-     | expr DEC
+     | expr MORE expr
+     | expr LESS expr
      | expr AND expr
      | expr OR expr
+     | expr INC 
+     | expr DEC
      | NOT expr
-     | expr
 
 %%
      
