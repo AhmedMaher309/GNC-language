@@ -2,7 +2,7 @@
 /* ### Auxiliary declarations ### */
 %{
     /*To enable yacc debugging (tracing the grammar rules) set the ENABLE_YACC_DEBUG flag to 1 (default: 0)*/
-    #define ENABLE_YACC_DEBUG 1
+    #define ENABLE_YACC_DEBUG 0
 
     /*To enable lex debugging (tracing the token rules) set the ENABLE_LEX_DEBUG flag to 1 (default: 0)*/
     #define ENABLE_LEX_DEBUG 0
@@ -73,11 +73,15 @@ program: program stmt
 
  /*////////////////// second degreee ////////////////////////////*/
 
-stmt: genn_stmt
+stmt: genn_stmt 
       | func_stmt
       | for_stmt
       | if_stmt
       | enum_stmt
+      | while_stmt
+      | repeat_stmt
+      | switch__stmt
+      | COMMENT
       ;
 
 stmt_list: stmt
@@ -88,38 +92,53 @@ func_stmt_list: stmt_list RETURN expr ';'
                 |  RETURN expr ';'
                 ;
 
+
 for_stmt_list: stmt_list BREAK ';' 
                | BREAK ';' 
                ;
 
-
  /*/////////////////// third degree /////////////////////////////*/
 
 genn_stmt:  type IDENTIFIER ';'
-           | type IDENTIFIER EQU IDENTIFIER ';'
-           | type IDENTIFIER EQU rvalue ';'
-           | CONSTANT type IDENTIFIER EQU IDENTIFIER ';'
-           | IDENTIFIER EQU expr ';'
-           | expr ';'
-           ;
+           /*| type IDENTIFIER EQU IDENTIFIER ';'*/
+           /*| type IDENTIFIER EQU rvalue ';'*/
+            | type IDENTIFIER EQU func_call ';' /*int a = func();*/
+            |  IDENTIFIER EQU func_call ';' /*int a = func();*/
+            | CONSTANT type IDENTIFIER EQU rvalue ';'
+            | ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER ';' /*enum months current_month = APR;*/
+            | IDENTIFIER EQU expr ';'
+            | type IDENTIFIER EQU expr ';'
+            | expr ';'
+            ;
 
 
-func_stmt: func_proto
-	   | func_define
-           | func_call
-           ;
+func_stmt:  func_proto
+            | func_define
+            | func_call
+            ;
 
 for_stmt: for_proto
-	  | for_define
-          ;
+	    | for_define
+        ;
 
 if_stmt: if_proto
-         | if_define
-         ;
+        | if_define
+        ;
 
-enum_stmt: enum_declare
+enum_stmt: enum_declare 
            ;
 
+while_stmt: while_proto
+           | while_define
+           ;
+
+repeat_stmt: REPEAT '{' stmt_list '}' UNTIL '(' expr ')' ';'
+                  | REPEAT '{' '}' UNTIL '(' expr ')' ';'
+                  ;
+
+switch__stmt:   SWITCH '(' IDENTIFIER ')' '{' case_list case_default '}' ';'
+                | SWITCH '(' IDENTIFIER ')' '{' case_default '}' ';'
+                ;
 
  /*///////////////////// forth degree /////////////////////////*/
 
@@ -136,13 +155,12 @@ func_define: type IDENTIFIER '(' parameters ')' '{' func_stmt_list '}'
 func_call: IDENTIFIER '(' expr_list ')' ;
 
 
-
 for_proto: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' ';'
 	      | FOR '(' expr ';' expr ';' expr ')' ';'
           ;
 
-for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' stmt_list '}' 
-	    | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' for_stmt_list '}' 
+for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' stmt_list '}'
+	        | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' for_stmt_list '}' 
             | FOR '(' expr ';' expr ';' expr ')' '{' stmt_list '}' 
             | FOR '(' expr ';' expr ';' expr ')' '{' for_stmt_list '}' 
             ;
@@ -152,15 +170,20 @@ if_proto: IF '(' expr ')' ';'
         ;
 
  /*not totally complete */
-if_define: IF '(' expr ')' '{' stmt_list '}' 
-	       |  IF '(' expr ')' '{' '}' 
-               |  IF  '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}'
+if_define:  IF '(' expr ')' '{' stmt_list '}' 
+	        |  IF '(' expr ')' '{' '}' 
+            |  IF  '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}' 
             ;
 
 
 enum_declare: ENUM IDENTIFIER '{' enum_list '}' ';' ;
 
+while_proto: WHILE '(' expr ')' ';'
+            ;
 
+while_define: WHILE '(' expr ')' '{' stmt_list '}'
+             | WHILE '(' expr ')' '{' '}' 
+             ;
 
  /*//////////////////////fifth degree /////////////////////////////// */
 
@@ -169,9 +192,11 @@ type: TYPE_INT
       | TYPE_CHAR
       | TYPE_BOOL
 
-parameters: IDENTIFIER
-	  | IDENTIFIER ',' parameters
-          ;
+parameters: type IDENTIFIER
+        | type IDENTIFIER ',' parameters
+        | %empty
+        ;
+
 
 rvalue: INTEGER
         | FLOAT
@@ -179,17 +204,25 @@ rvalue: INTEGER
         | BOOL
         ;
 
-enum_list: IDENTIFIER 
-	   | IDENTIFIER EQU INTEGER
-           | IDENTIFIER EQU INTEGER ',' enum_list
-           | IDENTIFIER ',' enum_list
-           ;
+enum_list:  IDENTIFIER 
+	        | IDENTIFIER EQU INTEGER
+            | IDENTIFIER EQU INTEGER ',' enum_list
+            | IDENTIFIER ',' enum_list
+            ;
 
-expr_list: expr
-         | expr_list ',' expr
-         ;
 
-expr: rvalue
+case_list:  case_list CASE rvalue ':' stmt_list BREAK ';' 
+            | CASE rvalue ':' stmt_list BREAK ';' 
+            ;
+
+case_default: DEFAULT ':' stmt_list BREAK ';'
+            ;
+
+expr_list:  expr
+            | expr_list ',' expr
+            ;
+
+expr: rvalue  
      | IDENTIFIER
      | expr PLUS expr
      | expr MINUS expr
@@ -207,6 +240,7 @@ expr: rvalue
      | expr OR expr
      | expr INC 
      | expr DEC
+     | '(' expr ')'
      | NOT expr 
 
 %%
@@ -278,7 +312,6 @@ int main(int argc, char **argv) {
 
 int yyerror(char const *s)
 {
-    fprintf(stderr, "%s\n", "HIII");
     return fprintf(stderr, "%s\n", s);
 }
 

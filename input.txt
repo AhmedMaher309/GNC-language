@@ -1,1 +1,69 @@
-int x = 5;
+/* Constants and enums */
+enum months { JAN, FEB, MAR, APR, MAY, JUN, JUL, AUG, SEP, OCT, NOV, DEC };
+/* Function declarations */
+int add(int a, int b);
+int factorial(int n);
+int main() {
+    /* Variable declaration and initialization */
+    int x = 5;
+    const int z = 10;
+    enum months current_month = APR;
+    
+    /* If-then-else statement */
+    if (x > 3)
+    {
+        y = 0;
+    }
+    else
+    {
+        y = 4;
+    }
+
+    /* While loop */
+    int i = 0;
+    while (i < 5) {
+        i++;
+        if (i<3){
+        }
+    }
+
+    /* Switch statement */
+    switch (current_month) {
+        case 1:
+            int x = 0;
+            break;
+        case 2:
+            int x = 0;
+            break;
+        default:
+            int x = 0;
+            break;
+    };
+
+    /* Mathematical and logical expressions */
+    result = x * y + PI;
+
+    /* Repeat-until loop */
+    int j = 0;
+    repeat {
+    } until (j > 5);
+
+    /* For loop */
+    for (k = 0; k < 5; k++) {
+        int x = y;
+    }
+    /* Function call */
+    int sum = add(x, z);
+    int fact = factorial(x);
+    return 0;
+}
+/* Function definition */
+
+int factorial(int n) {
+    if (n == 0) {
+        n = 1;
+    } else {
+        n = n ;
+    }
+    return 0;
+}
