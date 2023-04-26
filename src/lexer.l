@@ -55,6 +55,7 @@ elseif                                                  { return ELSEIF; }
 switch                                                  { return SWITCH; }
 case                                                    { return CASE; }
 default                                                 { return DEFAULT; }
+return                                                  { return RETURN; }
 
     /* mathematical operators */
 "+"                                                     { return PLUS; }
