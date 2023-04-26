@@ -85,17 +85,18 @@ stmt_list: stmt
          | stmt_list stmt
          ;
 
-func_stmt_list: RETURN expr ';'
-	             | stmt func_stmt_list 
+func_stmt_list:  RETURN expr ';'
+	             | stmt_list func_stmt_list 
                  ;
 
 for_stmt_list: BREAK ';' 
-               |stmt for_stmt_list
+               |stmt_list for_stmt_list
                ;
+
 
  /*/////////////////// third degree /////////////////////////////*/
 
-genn_stmt: type IDENTIFIER ';'
+genn_stmt:  type IDENTIFIER ';'
            | type IDENTIFIER EQU IDENTIFIER ';'
            | type IDENTIFIER EQU rvalue ';'
            | CONSTANT type IDENTIFIER EQU IDENTIFIER ';'
@@ -118,6 +119,7 @@ if_stmt: if_proto
 
 enum_stmt: enum_declare
            ;
+
 
  /*///////////////////// forth degree /////////////////////////*/
 
@@ -156,6 +158,7 @@ if_define: IF '(' expr ')' '{' stmt_list '}' ';'
 
 
 enum_declare: ENUM IDENTIFIER '{' enum_list '}' ';' ;
+
 
 
  /*//////////////////////fifth degree /////////////////////////////// */
