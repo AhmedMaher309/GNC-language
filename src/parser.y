@@ -2,7 +2,7 @@
 /* ### Auxiliary declarations ### */
 %{
     /*To enable yacc debugging (tracing the grammar rules) set the ENABLE_YACC_DEBUG flag to 1 (default: 0)*/
-    #define ENABLE_YACC_DEBUG 0
+    #define ENABLE_YACC_DEBUG 1
 
     /*To enable lex debugging (tracing the token rules) set the ENABLE_LEX_DEBUG flag to 1 (default: 0)*/
     #define ENABLE_LEX_DEBUG 0
@@ -84,12 +84,12 @@ stmt_list: stmt
          | stmt_list stmt
          ;
 
-func_stmt_list:  RETURN expr ';'
-	             | stmt_list func_stmt_list 
-                 ;
+func_stmt_list: stmt_list RETURN expr ';'
+                |  RETURN expr ';'
+                ;
 
-for_stmt_list: BREAK ';' 
-               |stmt_list for_stmt_list
+for_stmt_list: stmt_list BREAK ';' 
+               | BREAK ';' 
                ;
 
 
@@ -128,10 +128,8 @@ func_proto: type IDENTIFIER '(' parameters ')' ';'
             ;
 
 
-func_define: type IDENTIFIER '(' parameters ')' '{' stmt_list '}'
+func_define: type IDENTIFIER '(' parameters ')' '{' func_stmt_list '}'
             | TYPE_VOID IDENTIFIER '(' parameters ')' '{' stmt_list '}'
-            | type IDENTIFIER '(' parameters ')' '{' func_stmt_list '}'
-            | TYPE_VOID IDENTIFIER '(' parameters ')' '{' func_stmt_list '}'
             ;
         
 
@@ -139,23 +137,24 @@ func_call: IDENTIFIER '(' expr_list ')' ;
 
 
 
-for_proto: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')';
-	      | FOR '(' expr ';' expr ';' expr ')';
+for_proto: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' ';'
+	      | FOR '(' expr ';' expr ';' expr ')' ';'
           ;
 
 for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' stmt_list '}' 
-	        | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' for_stmt_list '}' 
+	    | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' for_stmt_list '}' 
             | FOR '(' expr ';' expr ';' expr ')' '{' stmt_list '}' 
             | FOR '(' expr ';' expr ';' expr ')' '{' for_stmt_list '}' 
             ;
 
 
-if_proto: IF '(' expr ')' ';' ;
+if_proto: IF '(' expr ')' ';' 
         ;
+
  /*not totally complete */
 if_define: IF '(' expr ')' '{' stmt_list '}' 
 	       |  IF '(' expr ')' '{' '}' 
-           |  IF  '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}'
+               |  IF  '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}'
             ;
 
 
@@ -181,7 +180,7 @@ rvalue: INTEGER
         ;
 
 enum_list: IDENTIFIER 
-	       | IDENTIFIER EQU INTEGER
+	   | IDENTIFIER EQU INTEGER
            | IDENTIFIER EQU INTEGER ',' enum_list
            | IDENTIFIER ',' enum_list
            ;
@@ -208,7 +207,7 @@ expr: rvalue
      | expr OR expr
      | expr INC 
      | expr DEC
-     | NOT expr
+     | NOT expr 
 
 %%
      
