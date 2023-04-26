@@ -1,5 +1,4 @@
 /* ############ Declarations ############ */
-
 /* ### Auxiliary declarations ### */
 %{
     /*To enable yacc debugging (tracing the grammar rules) set the ENABLE_YACC_DEBUG flag to 1 (default: 0)*/
@@ -37,7 +36,7 @@
 %token CONSTANT
 %token ENUM
 %token WHILE FOR BREAK CONTINUE 
-%token IF ELSE ELSEIF
+%token IF ELSE ELSEIF RETURN
 %token SWITCH CASE DEFAULT
 %token MINUS MULT PLUS DIV MODULE POWER EQU INC DEC
 %token MORE LESS EQU_EQU MORE_OR_EQU LESS_OR_EQU NOT_EQU
@@ -47,8 +46,7 @@
 %token IDENTIFIER
 %token COMMENT
 
-%type <cvalue> tokens
-%type <cvalue> token
+
 
 /*to specify the precedence and associativity of operators*/
 %left PLUS MINUS
@@ -62,161 +60,149 @@
 %nonassoc AND
 %nonassoc NOT 
 
-%start tokens
- 
-%%
-    /* ############ Rules ############ */
-tokens:   tokens token
-        | token
-        ;
+%start program 
 
-token:  enum_declaration
-        | function_prototype SEMICOLON
-        | function_declaration
-        | in_scope_statement
-        ;
+%% 
+ /*/////////////////Rules///////////////////////*/
 
-in_scope_statements: in_scope_statement 
-                    |in_scope_statements in_scope_statement 
+ /*///////////// the most general rule (program rule)////////////*/
 
-                    ;
+program: program stmt
+         | stmt
+         ;
 
-in_scope_statement:
-        variable_declaration SEMICOLON
-        | constant_declaration SEMICOLON
-        | expression SEMICOLON
-        | assignment SEMICOLON
-        /*| function_call SEMICOLON*/
-        | if_statement
-        | while_statement
-        | for_statement
-        | switch_statement
-        | repeat_until_statement SEMICOLON
-        | enum_variable_declaration SEMICOLON
-        | COMMENT
-        | BREAK SEMICOLON
-        | CONTINUE SEMICOLON /*****//* to add them spcefically in for and while loops*/
-;
 
-/*
-enum week_days {
-    MONDAY = 1,
-    TUESDAY,
-    WEDNESDAY = 5,
-    THURSDAY,
-    FRIDAY,
-    SATURDAY = 10,
-    SUNDAY
-}; 
-*//*****/
-/*****/ /* TODO: add support for return statement */
+ /*////////////////// second degreee ////////////////////////////*/
 
-in_enum_statement:
-    IDENTIFIER EQU INTEGER
-    | IDENTIFIER 
-    | IDENTIFIER EQU INTEGER COMMA in_enum_statement
-    | IDENTIFIER COMMA in_enum_statement
-    ;
+stmt: genn_stmt
+      | func_stmt
+      | for_stmt
+      | if_stmt
+      | enum_stmt
+      ;
 
-enum_variable_declaration: ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER; /* enum colors my_color = RED; */
-
-type: TYPE_INT
-    | TYPE_FLOAT
-    | TYPE_CHAR
-    | TYPE_BOOL 
-    | TYPE_VOID;
-
-parameter_or_empty: OPEN_BRAC parameters CLOSE_BRAC 
-		  | OPEN_BRAC CLOSE_BRAC ;
-
-parameters: type IDENTIFIER 
-	  | type IDENTIFIER COMMA parameters;
-
-argument_or_empty:  OPEN_BRAC arguments CLOSE_BRAC 
-		 | OPEN_BRAC CLOSE_BRAC ;
-
-arguments: expression 
-	 | expression COMMA arguments;
-
-enum_declaration: ENUM IDENTIFIER OPEN_CURL in_enum_statement CLOSE_CURL SEMICOLON;
-
-function_prototype: type IDENTIFIER parameter_or_empty;
-
-function_declaration: function_prototype OPEN_CURL in_scope_statements CLOSE_CURL;
-
-variable_declaration: type IDENTIFIER 
-		    | type IDENTIFIER EQU expression;
-
-constant_declaration: CONSTANT type IDENTIFIER EQU constant_right_hand_side; 
-
-expression: operand 
-            | expression PLUS expression 
-            | expression MINUS expression 
-            | expression MULT expression 
-            | expression DIV expression 
-            | expression MODULE expression 
-            | expression POWER expression
-            | operand INC
-            | operand DEC
-            | expression LESS_OR_EQU expression
-            | expression MORE_OR_EQU expression 
-            | expression LESS expression 
-            | expression MORE expression 
-            | expression EQU_EQU expression
-            | expression AND expression 
-            | expression OR expression 
-            | expression NOT_EQU expression
-            | NOT expression  
-            | OPEN_BRAC expression CLOSE_BRAC
+stmt_group: stmt
+	        | stmt_group stmt
             ;
 
-operand: IDENTIFIER 
-       | constant_right_hand_side 
-       | function_call ;
+func_stmt_group: RETURN expr ';'
+	             | stmt func_stmt_group 
+                 ;
 
-constant_right_hand_side: INTEGER 
-			| FLOAT 
-                        | CHAR 
-                        | BOOL ;
+for_stmt_group: BREAK ';' 
+               |stmt for_stmt_group
+               ;
 
-assignment: IDENTIFIER EQU expression;
+ /*/////////////////// third degree /////////////////////////////*/
 
-function_call: IDENTIFIER argument_or_empty;
+genn_stmt: type IDENTIFIER ';'
+           | type IDENTIFIER EQU IDENTIFIER ';'
+           | type IDENTIFIER EQU rvalue ';'
+           | CONSTANT type IDENTIFIER EQU IDENTIFIER ';'
+           | IDENTIFIER EQU expr ';'
+           | expr ';'
+           ;
 
-statements_or_empty: OPEN_CURL in_scope_statements CLOSE_CURL | OPEN_CURL CLOSE_CURL ;
+func_stmt: func_proto
+	   | func_define
+           | func_call
+           ;
 
-if_statement: IF OPEN_BRAC expression CLOSE_BRAC statements_or_empty
-              | IF OPEN_BRAC expression CLOSE_BRAC   statements_or_empty ELSE   statements_or_empty 
-              | IF OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL
-                elseif_statment
-                ELSE OPEN_CURL in_scope_statements CLOSE_CURL;
+for_stmt: for_proto
+	  | for_define
+          ;
 
-elseif_statment: ELSEIF OPEN_BRAC expression CLOSE_BRAC   statements_or_empty 
-                 | elseif_statment ELSEIF OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL;
+if_stmt: if_proto
+         | if_define
+         ;
 
-while_statement: WHILE OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL;
+enum_stmt: enum_declare
+           ;
 
-for_statement: FOR OPEN_BRAC counter_variable SEMICOLON expression SEMICOLON expression CLOSE_BRAC OPEN_CURL in_scope_statements CLOSE_CURL; /*****//* specific expression for first expression?*/
+ /*///////////////////// forth degree /////////////////////////*/
 
-counter_variable: variable_declaration 
-		| assignment;
+func_proto: type IDENTIFIER '(' parameters ')' ';'
+	        | TYPE_VOID IDENTIFIER '(' parameters ')' ';' 
+            ;
 
-switch_statement: SWITCH OPEN_BRAC expression CLOSE_BRAC OPEN_CURL in_switch_statement CLOSE_CURL;
+func_define: type IDENTIFIER '(' parameters ')' '{'func_stmt_group '}' ';'
+	         | TYPE_VOID IDENTIFIER '(' parameters ')' '{' stmt_group '}' ';'
+             ;
 
-in_switch_statement: cases
-		   | cases default;
+func_call: IDENTIFIER '(' expr_group ')' ;
 
-cases: case 
-     |case cases;
 
-case: CASE operand COLON  in_scope_statements BREAK SEMICOLON;
 
-default: DEFAULT COLON in_scope_statements BREAK SEMICOLON;
+for_proto: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')';
+	      | FOR '(' expr ';' expr ';' expr ')';
+          ;
 
-repeat_until_statement: REPEAT   statements_or_empty UNTIL OPEN_BRAC expression CLOSE_BRAC;
+for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' for_stmt_group '}' ';'
+	        | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' stmt_group '}' ';'
+            | FOR '(' expr ';' expr ';' expr ')' '{' for_stmt_group '}' ';'
+            | FOR '(' expr ';' expr ';' expr ')' '{' stmt_group '}' ';' 
+            ;
 
+
+if_proto: IF '(' expr ')' ';' ;
+        ;
+
+if_define: IF '(' expr ')' '{' stmt_group '}' ';'
+	       |  IF '(' expr ')' '{' '}' ';'
+           ;
+
+
+enum_declare: ENUM IDENTIFIER '{' enum_list '}' ';' ;
+
+
+ /*//////////////////////fifth degree /////////////////////////////// */
+
+type: TYPE_INT
+      | TYPE_FLOAT
+      | TYPE_CHAR
+      | TYPE_BOOL
+
+parameters: IDENTIFIER
+	  | IDENTIFIER ',' parameters
+          ;
+
+rvalue: INTEGER
+        | FLOAT
+        | CHAR
+        | BOOL
+        ;
+
+enum_list: IDENTIFIER 
+	       | IDENTIFIER EQU INTEGER
+           | IDENTIFIER EQU INTEGER ',' enum_list
+           | IDENTIFIER ',' enum_list
+           ;
+
+expr_group: expr 
+            | expr ',' expr_group
+          ;
+
+expr: rvalue
+     | IDENTIFIER
+     | expr PLUS expr
+     | expr MINUS expr
+     | expr MULT expr
+     | expr DIV expr
+     | expr POWER expr
+     | expr MODULE expr
+     | expr EQU_EQU expr
+     | expr NOT_EQU expr 
+     | expr MORE_OR_EQU expr
+     | expr LESS_OR_EQU expr
+     | expr INC 
+     | expr DEC
+     | expr AND expr
+     | expr OR expr
+     | NOT expr
+     | expr
 
 %%
+     
 /* ############ Auxiliary Functions ############ */
 
 int main(int argc, char **argv) { 
@@ -287,3 +273,13 @@ int yyerror(char const *s)
     fprintf(stderr, "%s\n", "HIII");
     return fprintf(stderr, "%s\n", s);
 }
+
+
+
+
+
+
+
+
+
+
