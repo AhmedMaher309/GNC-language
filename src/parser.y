@@ -100,15 +100,16 @@ break_stmt_list: stmt_list BREAK ';'
  /*/////////////////// third degree /////////////////////////////*/
 
 genn_stmt:  type IDENTIFIER ';'
-           /*| type IDENTIFIER EQU IDENTIFIER ';'
-           | type IDENTIFIER EQU rvalue ';' */
-           | CONSTANT type IDENTIFIER EQU IDENTIFIER ';'
-           | IDENTIFIER EQU expr ';'
-           | type IDENTIFIER EQU expr ';'
-           | type IDENTIFIER EQU func_call ';'
-           | IDENTIFIER EQU func_call ';'
-           | expr ';'
-           ;
+           /*| type IDENTIFIER EQU IDENTIFIER ';'*/
+           /*| type IDENTIFIER EQU rvalue ';'*/
+            | type IDENTIFIER EQU func_call ';' /*int a = func();*/
+            |  IDENTIFIER EQU func_call ';' /*int a = func();*/
+            | CONSTANT type IDENTIFIER EQU rvalue ';'
+            | ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER ';' /*enum months current_month = APR;*/
+            | IDENTIFIER EQU expr ';'
+            | type IDENTIFIER EQU expr ';'
+            | expr ';'
+            ;
 
 
 func_stmt: func_proto
@@ -194,8 +195,9 @@ type: TYPE_INT
       | TYPE_CHAR
       | TYPE_BOOL
 
-parameters: IDENTIFIER
-	  | IDENTIFIER ',' parameters
+parameters: type IDENTIFIER
+	  | type IDENTIFIER ',' parameters
+      |%empty
           ;
 
 rvalue: INTEGER
