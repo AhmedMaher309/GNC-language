@@ -194,8 +194,8 @@ type: TYPE_INT
       | TYPE_CHAR
       | TYPE_BOOL
 
-parameters: IDENTIFIER
-	  | IDENTIFIER ',' parameters
+parameters:type IDENTIFIER
+	  |type IDENTIFIER ',' parameters
           ;
 
 rvalue: INTEGER
