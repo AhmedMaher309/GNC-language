@@ -78,6 +78,10 @@ stmt: genn_stmt
       | for_stmt
       | if_stmt
       | enum_stmt
+      | while_stmt
+      | repeat_stmt
+      | switch_stmt
+      | COMMENT
       ;
 
 stmt_list: stmt
@@ -88,7 +92,7 @@ func_stmt_list: stmt_list RETURN expr ';'
                 |  RETURN expr ';'
                 ;
 
-for_stmt_list: stmt_list BREAK ';' 
+break_stmt_list: stmt_list BREAK ';' 
                | BREAK ';' 
                ;
 
@@ -124,8 +128,20 @@ enum_stmt: enum_declare
            ;
 
 
- /*///////////////////// forth degree /////////////////////////*/
+while_stmt: while_proto
+           | while_define
+           ;
+           
+repeat_stmt: REPEAT '{' stmt_list '}' UNTIL '(' expr ')' ';'
+                  | REPEAT '{' '}' UNTIL '(' expr ')' ';'
+                  ;
+                  
+switch_stmt:   SWITCH '(' IDENTIFIER ')' '{' case_list case_default '}' ';'
+                | SWITCH '(' IDENTIFIER ')' '{' case_default '}' ';'
+                ;
 
+
+ /*///////////////////// forth degree /////////////////////////*/
 func_proto: type IDENTIFIER '(' parameters ')' ';'
 	        | TYPE_VOID IDENTIFIER '(' parameters ')' ';' 
             ;
@@ -145,23 +161,29 @@ for_proto: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' ';'
           ;
 
 for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' stmt_list '}' 
-	    | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' for_stmt_list '}' 
+	    | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' break_stmt_list '}' 
             | FOR '(' expr ';' expr ';' expr ')' '{' stmt_list '}' 
-            | FOR '(' expr ';' expr ';' expr ')' '{' for_stmt_list '}' 
+            | FOR '(' expr ';' expr ';' expr ')' '{' break_stmt_list '}' 
             ;
 
 
 if_proto: IF '(' expr ')' ';' 
         ;
 
- /*not totally complete */
 if_define: IF '(' expr ')' '{' stmt_list '}' 
 	       |  IF '(' expr ')' '{' '}' 
                |  IF  '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}'
-            ;
+               ;
 
 
 enum_declare: ENUM IDENTIFIER '{' enum_list '}' ';' ;
+
+
+while_proto: WHILE '(' expr ')' ';'
+
+
+while_define: WHILE '(' expr ')' '{' stmt_list '}'
+             | WHILE '(' expr ')' '{' break_stmt_list '}'
 
 
 
@@ -188,6 +210,13 @@ enum_list: IDENTIFIER
            | IDENTIFIER ',' enum_list
            ;
 
+case_list:  case_list CASE rvalue ':' stmt_list BREAK ';' 
+            | CASE rvalue ':' stmt_list BREAK ';' 
+            ;
+
+case_default: DEFAULT ':' stmt_list BREAK ';'
+            ;
+            
 expr_list: expr
          | expr_list ',' expr
          ;
