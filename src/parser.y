@@ -100,8 +100,6 @@ break_stmt_list: stmt_list BREAK ';'
  /*/////////////////// third degree /////////////////////////////*/
 
 genn_stmt:  type IDENTIFIER ';'
-           /*| type IDENTIFIER EQU IDENTIFIER ';'
-           | type IDENTIFIER EQU rvalue ';' */
            | type IDENTIFIER EQU func_call ';'
            | IDENTIFIER EQU func_call ';'
            | CONSTANT type IDENTIFIER EQU rvalue ';'
@@ -112,12 +110,12 @@ genn_stmt:  type IDENTIFIER ';'
 
 
 func_stmt: func_proto
-	   | func_define
+	       | func_define
            | func_call
            ;
 
 for_stmt: for_proto
-	  | for_define
+	      | for_define
           ;
 
 if_stmt: if_proto
@@ -149,8 +147,8 @@ func_proto: type IDENTIFIER '(' parameters ')' ';'
 
 
 func_define: type IDENTIFIER '(' parameters ')' '{' func_stmt_list '}'
-            | TYPE_VOID IDENTIFIER '(' parameters ')' '{' stmt_list '}'
-            ;
+             | TYPE_VOID IDENTIFIER '(' parameters ')' '{' stmt_list '}'
+             ;
         
 
 func_call: IDENTIFIER '(' expr_list ')' ;
@@ -158,11 +156,11 @@ func_call: IDENTIFIER '(' expr_list ')' ;
 
 
 for_proto: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' ';'
-	      | FOR '(' expr ';' expr ';' expr ')' ';'
-          ;
+	       | FOR '(' expr ';' expr ';' expr ')' ';'
+           ;
 
 for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' stmt_list '}' 
-	    | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' break_stmt_list '}' 
+	        | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' break_stmt_list '}' 
             | FOR '(' expr ';' expr ';' expr ')' '{' stmt_list '}' 
             | FOR '(' expr ';' expr ';' expr ')' '{' break_stmt_list '}' 
             ;
@@ -172,9 +170,9 @@ if_proto: IF '(' expr ')' ';'
         ;
 
 if_define: IF '(' expr ')' '{' stmt_list '}' 
-	       |  IF '(' expr ')' '{' '}' 
-               |  IF  '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}'
-               ;
+	       | IF '(' expr ')' '{' '}' 
+           | IF  '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}'
+           ;
 
 
 enum_declare: ENUM IDENTIFIER '{' enum_list '}' ';' ;
@@ -186,6 +184,7 @@ while_proto: WHILE '(' expr ')' ';'
 
 while_define: WHILE '(' expr ')' '{' stmt_list '}'
              | WHILE '(' expr ')' '{' break_stmt_list '}'
+             ;
 
 
 
@@ -195,6 +194,7 @@ type: TYPE_INT
       | TYPE_FLOAT
       | TYPE_CHAR
       | TYPE_BOOL
+      ;
 
 parameters:type IDENTIFIER
 	  |type IDENTIFIER ',' parameters
@@ -208,7 +208,7 @@ rvalue: INTEGER
         ;
 
 enum_list: IDENTIFIER 
-	   | IDENTIFIER EQU INTEGER
+	       | IDENTIFIER EQU INTEGER
            | IDENTIFIER EQU INTEGER ',' enum_list
            | IDENTIFIER ',' enum_list
            ;
@@ -243,6 +243,7 @@ expr: rvalue
      | expr INC 
      | expr DEC
      | NOT expr 
+     ;
 
 %%
      
