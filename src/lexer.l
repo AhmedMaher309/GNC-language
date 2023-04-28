@@ -46,12 +46,10 @@ enum                                                    { return ENUM; }
 while                                                   { return WHILE; }
 for                                                     { return FOR; }
 break                                                   { return BREAK; }
-continue                                                { return CONTINUE; }
  
     /* if, else, elseif, switch cases */
 if                                                      { return IF; }
 else                                                    { return ELSE; }
-elseif                                                  { return ELSEIF; }
 switch                                                  { return SWITCH; }
 case                                                    { return CASE; }
 default                                                 { return DEFAULT; }
