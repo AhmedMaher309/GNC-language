@@ -12,8 +12,8 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
-    extern FILE *yyin;
-    extern FILE *yyout;
+    extern void lex_init(void);
+    extern void lex_deinit(void);
     extern int yyleng;
     extern int yy_flex_debug;
     int yydebug;
@@ -30,7 +30,7 @@
 
 %token <ivalue> INTEGER
 %token <fvalue> FLOAT
-%token <cvalue> BOOL
+%token <ivalue> BOOL
 %token <cvalue> CHAR
 %token TYPE_INT TYPE_FLOAT TYPE_CHAR TYPE_BOOL TYPE_VOID
 %token CONSTANT
@@ -38,6 +38,7 @@
 %token WHILE FOR BREAK
 %token IF ELSE RETURN
 %token SWITCH CASE DEFAULT
+%token PRINT
 %token MINUS MULT PLUS DIV MODULE POWER EQU INC DEC
 %token MORE LESS EQU_EQU MORE_OR_EQU LESS_OR_EQU NOT_EQU
 %token AND OR NOT
@@ -62,7 +63,7 @@
 %start program 
 
 %% 
- /*/////////////////Rules///////////////////////*/
+    /* ############ Rules ############ */
 
  /*///////////// the most general rule (program rule)////////////*/
 
@@ -170,8 +171,13 @@ if_proto: IF '(' expr ')' ';'
         ;
 
 if_define: IF '(' expr ')' '{' stmt_list '}' 
-	       | IF '(' expr ')' '{' '}' 
-           | IF  '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}'
+           |  IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}'
+           |  IF '(' expr ')' '{' stmt_list '}' ELSE '{' '}'
+           |  IF '(' expr ')' '{' stmt_list '}' ELSE ';'
+	       |  IF '(' expr ')' '{' '}' 
+           |  IF '(' expr ')' '{' '}' ELSE '{'stmt_list '}'
+           |  IF '(' expr ')' '{' '}' ELSE '{' '}'
+           |  IF '(' expr ')' '{' '}' ELSE ';'
            ;
 
 
@@ -179,7 +185,7 @@ enum_declare: ENUM IDENTIFIER '{' enum_list '}' ';' ;
 
 enum_define: ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER ';'
 
-while_proto: WHILE '(' expr ')' ';'
+while_proto: WHILE '(' expr ')' ';' ;
 
 
 while_define: WHILE '(' expr ')' '{' stmt_list '}'
@@ -196,10 +202,10 @@ type: TYPE_INT
       | TYPE_BOOL
       ;
 
-parameters:type IDENTIFIER
-	  |type IDENTIFIER ',' parameters
-          | %empty
-          ;
+parameters: type IDENTIFIER
+	  | type IDENTIFIER ',' parameters
+      |%empty
+      ;
 
 rvalue: INTEGER
         | FLOAT
@@ -253,77 +259,14 @@ int main(int argc, char **argv) {
     yydebug = ENABLE_YACC_DEBUG;
     yy_flex_debug = ENABLE_LEX_DEBUG;
 
-    if (argc == 1)
-    {
-        fprintf(stdout, "No arguments provided!\nInput will default to input.txt\nOutput will default to output.txt\n");
-        yyin = fopen("input.txt", "r");
-        if (yyin == NULL)
-        {
-            fprintf(stderr, "Input file not found!\nDefaulting input to factorinal\n[use ctrl+D to exit]\n");
-            yyin = stdin;
-        }
-        yyout = fopen("output.txt", "w");
-    }
-    if (argc == 2)
-    {
-        fprintf(stdout, "Input set to \"%s\"\nOutput will default to output.txt\n",argv[1]);
-
-        yyin = fopen(argv[1], "r");
-        if (yyin == NULL)
-        {
-            fprintf(stderr, "Input file not found!\nDefaulting input to factorinal\n[use ctrl+D to exit]\n");
-            yyin = stdin;
-        }
-        yyout = fopen("output.txt", "w");
-    }
-    if (argc == 3)
-    {
-        fprintf(stdout, "Input set to \"%s\"\nOutput set to \"%s\"\n", argv[1], argv[2]);
-
-        yyin = fopen(argv[1], "r");
-        if (yyin == NULL)
-        {
-            fprintf(stderr, "Input file not found!\nDefaulting input to factorinal\n[use ctrl+D to exit]\n");
-            yyin = stdin;
-        }
-        yyout = fopen(argv[2], "w");
-    }
-    if (argc > 3)
-    {
-        fprintf(stdout, "Input set to \"%s\"\nOutput set to \"%s\"\nExtra arguments skipped!\n", argv[1], argv[2]);
-        
-        yyin = fopen(argv[1], "r");
-        if (yyin == NULL)
-        {
-            fprintf(stderr, "Input file not found!\nDefaulting input to factorinal\n[use ctrl+D to exit]\n");
-            yyin = stdin;
-        }
-        yyout = fopen(argv[2], "w");
-    }
-
+    lex_init();
     yyparse();
-
-    if (yyin != stdin)
-    {
-        fclose(yyin);
-    }
-    fclose(yyout);
+    lex_deinit();
 
     return 0;
 }
 
 int yyerror(char const *s)
 {
-    fprintf(stderr, "%s\n", "HIII");
     return fprintf(stderr, "%s\n", s);
 }
-
-
-
-
-
-
-
-
-
-

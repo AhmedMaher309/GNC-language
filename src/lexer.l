@@ -1,11 +1,13 @@
 /* ############ Declarations ############ */
-
 /* ### Auxiliary declarations ### */
 %{
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "y.tab.h"
+extern FILE* io_readfile();
+extern FILE* io_writefile();
+extern int io_closefile(FILE* file);
 extern YYSTYPE yylval;
 %}
 
@@ -55,6 +57,10 @@ case                                                    { return CASE; }
 default                                                 { return DEFAULT; }
 return                                                  { return RETURN; }
 
+
+     /* printing */
+print                                                   { return PRINT; }
+
     /* mathematical operators */
 "+"                                                     { return PLUS; }
 "-"                                                     { return MINUS; }
@@ -101,3 +107,62 @@ return                                                  { return RETURN; }
 %%
 /* ############ Auxiliary Functions ############ */
 
+void lex_init(void)
+{
+    FILE* file;
+
+    fprintf(stdout, "Getting input file. Leave empty for default input (stdin)\n");
+    file = io_readfile();
+    if (file != NULL)
+    {
+        fprintf(stdout, "Successfully opened input file\n");
+        yyin = file;
+    }
+    else
+    {
+        fprintf(stderr, "Error opening input file\n");
+        fprintf(stdout, "Defaulting input to stdin\n");
+        yyin = stdin;
+    }
+
+    fprintf(stdout, "Getting output file. Leave empty for default output (stdout)\n");
+    file = io_writefile();
+    if (file != NULL)
+    {
+        fprintf(stdout, "Successfully opened output file\n");
+        yyout = file;
+    }
+    else
+    {
+        fprintf(stderr, "Error opening output file\n");
+        fprintf(stdout, "Defaulting output to stdout\n");
+        yyout = stdout;
+    }    
+}
+
+void lex_deinit(void)
+{
+    if (yyin != stdin)
+    {
+        if (io_closefile(yyin) == 0)
+        {
+            fprintf(stdout, "Successfully closed input file\n");
+        }
+        else
+        {
+            fprintf(stderr, "Error closing input file\n");
+        }
+    }
+
+    if (yyout != stdout)
+    {
+        if (io_closefile(yyout) == 0)
+        {
+            fprintf(stdout, "Successfully closed output file\n");
+        }
+        else
+        {
+            fprintf(stderr, "Error closing output file\n");
+        }
+    }
+}
