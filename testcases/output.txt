@@ -47,3 +47,12 @@ Identifier Token: z
 Identifier Token: fact
 Identifier Token: factorial
 Identifier Token: x
+Identifier Token: x
+Identifier Token: x
+Identifier Token: c
+Identifier Token: y
+Identifier Token: c
+Identifier Token: c
+Identifier Token: u
+Identifier Token: c
+Identifier Token: l
