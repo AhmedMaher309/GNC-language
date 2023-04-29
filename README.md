@@ -35,13 +35,7 @@ To clean up the build artifacts, run the following command:
 
 To run the built binary, run the command:
 
-    make run IN=input.txt OUT=output.txt
-
-* **"IN="** is an optional argument to set the name of the input file in the "inputs/" directory.
-**Note:** If the input file is not found in the "inputs/" directory, the program defaults to input from the terminal.
-
-* **"OUT="** is an optional argument to set the name of the output file in the "outputs/" directory.
- **Note:** If the output file is not found in the "outputs/" directory, the program creates it.
+    make run 
 
 To clear the project (delete the binary file, build artifacts, and input/output files), run the following command:
 
@@ -69,6 +63,7 @@ The project is organized as follows:
     outputs/           # Folder where input files are kept
     
     src/               # Folder where the source code files are kept
+        iohandler.c         # C code responsible for the input/output file handling
         lexer.l             # Flex lexer file
         parser.y            # Bison parser file
 

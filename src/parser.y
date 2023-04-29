@@ -12,8 +12,8 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
-    extern FILE *yyin;
-    extern FILE *yyout;
+    extern void lex_init(void);
+    extern void lex_deinit(void);
     extern int yyleng;
     extern int yy_flex_debug;
     int yydebug;
@@ -63,7 +63,7 @@
 %start program 
 
 %% 
- /*/////////////////Rules///////////////////////*/
+    /* ############ Rules ############ */
 
  /*///////////// the most general rule (program rule)////////////*/
 
@@ -252,61 +252,9 @@ int main(int argc, char **argv) {
     yydebug = ENABLE_YACC_DEBUG;
     yy_flex_debug = ENABLE_LEX_DEBUG;
 
-    if (argc == 1)
-    {
-        fprintf(stdout, "No arguments provided!\nInput will default to input.txt\nOutput will default to output.txt\n");
-        yyin = fopen("input.txt", "r");
-        if (yyin == NULL)
-        {
-            fprintf(stderr, "Input file not found!\nDefaulting input to factorinal\n[use ctrl+D to exit]\n");
-            yyin = stdin;
-        }
-        yyout = fopen("output.txt", "w");
-    }
-    if (argc == 2)
-    {
-        fprintf(stdout, "Input set to \"%s\"\nOutput will default to output.txt\n",argv[1]);
-
-        yyin = fopen(argv[1], "r");
-        if (yyin == NULL)
-        {
-            fprintf(stderr, "Input file not found!\nDefaulting input to factorinal\n[use ctrl+D to exit]\n");
-            yyin = stdin;
-        }
-        yyout = fopen("output.txt", "w");
-    }
-    if (argc == 3)
-    {
-        fprintf(stdout, "Input set to \"%s\"\nOutput set to \"%s\"\n", argv[1], argv[2]);
-
-        yyin = fopen(argv[1], "r");
-        if (yyin == NULL)
-        {
-            fprintf(stderr, "Input file not found!\nDefaulting input to factorinal\n[use ctrl+D to exit]\n");
-            yyin = stdin;
-        }
-        yyout = fopen(argv[2], "w");
-    }
-    if (argc > 3)
-    {
-        fprintf(stdout, "Input set to \"%s\"\nOutput set to \"%s\"\nExtra arguments skipped!\n", argv[1], argv[2]);
-        
-        yyin = fopen(argv[1], "r");
-        if (yyin == NULL)
-        {
-            fprintf(stderr, "Input file not found!\nDefaulting input to factorinal\n[use ctrl+D to exit]\n");
-            yyin = stdin;
-        }
-        yyout = fopen(argv[2], "w");
-    }
-
+    lex_init();
     yyparse();
-
-    if (yyin != stdin)
-    {
-        fclose(yyin);
-    }
-    fclose(yyout);
+    lex_deinit();
 
     return 0;
 }
@@ -315,13 +263,3 @@ int yyerror(char const *s)
 {
     return fprintf(stderr, "%s\n", s);
 }
-
-
-
-
-
-
-
-
-
-

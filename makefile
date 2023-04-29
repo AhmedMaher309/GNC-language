@@ -2,21 +2,18 @@ LEX = flex
 YACC = bison
 CC = gcc
 
-IN = input.txt
-OUT = output.txt
+# link rule
+build: src/iohandler.c lexer parser
+	$(CC) -o compiler.out src/lex.yy.c src/y.tab.c src/iohandler.c
 
 # link rule
-build: lexer parser
-	$(CC) -o compiler.out src/lex.yy.c src/y.tab.c
-
-# link rule
-cleanbuild: lexer_silent parser_silent
-	$(CC) -o compiler.out src/lex.yy.c src/y.tab.c
+cleanbuild: src/iohandler.c lexer_silent parser_silent
+	$(CC) -o compiler.out src/lex.yy.c src/y.tab.c src/iohandler.c
 	rm -f src/y.* src/lex.*
 
 # run rule
 run: 
-	./compiler.out ./$(IN) ./$(OUT)
+	./compiler.out
 
 # clean rule
 clean: 
