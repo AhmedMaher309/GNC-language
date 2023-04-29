@@ -17,6 +17,7 @@ src/*.output
 *.out
 *.swap
 
-# Ignore I/O files
-inputs/*.txt
-outputs/*.txt
+# Ignore I/O files (except for defaults)
+testcases/*.txt
+!testcases/input.txt
+!testcases/output.txt
