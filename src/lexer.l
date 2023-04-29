@@ -57,6 +57,10 @@ case                                                    { return CASE; }
 default                                                 { return DEFAULT; }
 return                                                  { return RETURN; }
 
+
+     /* printing */
+print                                                   { return PRINT; }
+
     /* mathematical operators */
 "+"                                                     { return PLUS; }
 "-"                                                     { return MINUS; }

@@ -41,7 +41,7 @@ To run the built binary, run the command:
 **Note:** If the input file is not found in the "inputs/" directory, the program defaults to input from the terminal.
 
 * **"OUT="** is an optional argument to set the name of the output file in the "outputs/" directory.
- **Note:** If the output file is not found in the "output/" directory, the program creates it.
+ **Note:** If the output file is not found in the "outputs/" directory, the program creates it.
 
 To clear the project (delete the binary file, build artifacts, and input/output files), run the following command:
 
@@ -65,11 +65,14 @@ The programming language implemented in this project includes the following feat
 
 The project is organized as follows:
 
-    src/
-        lexer.l        # Flex lexer file
-        parser.y       # Bison parser file
+    inputs/            # Folder where input files are kept
+    outputs/           # Folder where input files are kept
+    
+    src/               # Folder where the source code files are kept
+        lexer.l             # Flex lexer file
+        parser.y            # Bison parser file
 
-    makefile       # Makefile for building the project
+    makefile           # Makefile for building the project
     README.md          # This file
 
 

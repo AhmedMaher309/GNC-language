@@ -30,7 +30,7 @@
 
 %token <ivalue> INTEGER
 %token <fvalue> FLOAT
-%token <cvalue> BOOL
+%token <ivalue> BOOL
 %token <cvalue> CHAR
 %token TYPE_INT TYPE_FLOAT TYPE_CHAR TYPE_BOOL TYPE_VOID
 %token CONSTANT
@@ -38,6 +38,7 @@
 %token WHILE FOR BREAK CONTINUE 
 %token IF ELSE ELSEIF RETURN
 %token SWITCH CASE DEFAULT
+%token PRINT
 %token MINUS MULT PLUS DIV MODULE POWER EQU INC DEC
 %token MORE LESS EQU_EQU MORE_OR_EQU LESS_OR_EQU NOT_EQU
 %token AND OR NOT
@@ -312,7 +313,6 @@ int main(int argc, char **argv) {
 
 int yyerror(char const *s)
 {
-    fprintf(stderr, "%s\n", "HIII");
     return fprintf(stderr, "%s\n", s);
 }
 
