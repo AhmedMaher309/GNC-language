@@ -35,8 +35,8 @@
 %token TYPE_INT TYPE_FLOAT TYPE_CHAR TYPE_BOOL TYPE_VOID
 %token CONSTANT
 %token ENUM
-%token WHILE FOR BREAK CONTINUE 
-%token IF ELSE ELSEIF RETURN
+%token WHILE FOR BREAK 
+%token IF ELSE RETURN
 %token SWITCH CASE DEFAULT
 %token PRINT
 %token MINUS MULT PLUS DIV MODULE POWER EQU INC DEC
@@ -101,10 +101,8 @@ break_stmt_list: stmt_list BREAK ';'
  /*/////////////////// third degree /////////////////////////////*/
 
 genn_stmt:  type IDENTIFIER ';'
-           /*| type IDENTIFIER EQU IDENTIFIER ';'*/
-           /*| type IDENTIFIER EQU rvalue ';'*/
             | type IDENTIFIER EQU func_call ';' /*int a = func();*/
-            |  IDENTIFIER EQU func_call ';' /*int a = func();*/
+            | IDENTIFIER EQU func_call ';' /*int a = func();*/
             | CONSTANT type IDENTIFIER EQU rvalue ';'
             | ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER ';' /*enum months current_month = APR;*/
             | IDENTIFIER EQU expr ';'
@@ -173,19 +171,25 @@ if_proto: IF '(' expr ')' ';'
         ;
 
 if_define: IF '(' expr ')' '{' stmt_list '}' 
+           |  IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}'
+           |  IF '(' expr ')' '{' stmt_list '}' ELSE '{' '}'
+           |  IF '(' expr ')' '{' stmt_list '}' ELSE ';'
 	       |  IF '(' expr ')' '{' '}' 
-               |  IF  '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}'
-               ;
+           |  IF '(' expr ')' '{' '}' ELSE '{'stmt_list '}'
+           |  IF '(' expr ')' '{' '}' ELSE '{' '}'
+           |  IF '(' expr ')' '{' '}' ELSE ';'
+           ;
 
 
 enum_declare: ENUM IDENTIFIER '{' enum_list '}' ';' ;
 
 
-while_proto: WHILE '(' expr ')' ';'
+while_proto: WHILE '(' expr ')' ';' ;
 
 
 while_define: WHILE '(' expr ')' '{' stmt_list '}'
              | WHILE '(' expr ')' '{' break_stmt_list '}'
+             ;
 
 
 
@@ -195,11 +199,12 @@ type: TYPE_INT
       | TYPE_FLOAT
       | TYPE_CHAR
       | TYPE_BOOL
+      ;
 
 parameters: type IDENTIFIER
 	  | type IDENTIFIER ',' parameters
       |%empty
-          ;
+      ;
 
 rvalue: INTEGER
         | FLOAT
@@ -243,6 +248,7 @@ expr: rvalue
      | expr INC 
      | expr DEC
      | NOT expr 
+     ;
 
 %%
      
