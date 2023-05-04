@@ -12,6 +12,7 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
+    #include "symbol.h"
     extern void lex_init(void);
     extern void lex_deinit(void);
     extern int yyleng;
@@ -267,6 +268,8 @@ int main(int argc, char **argv) {
     lex_init();
     yyparse();
     lex_deinit();
+    
+    testFunc();
 
     return 0;
 }

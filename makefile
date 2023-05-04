@@ -6,12 +6,12 @@ IN = testcases/input.txt
 OUT = testcases/output.txt
 
 # link rule
-build: lexer parser src/iohandler.c 
-	$(CC) -o compiler.out src/lex.yy.c src/y.tab.c src/iohandler.c
+build: lexer parser src/iohandler.c src/symbol.cpp
+	$(CC) -o compiler.out src/lex.yy.c src/y.tab.c src/iohandler.c src/symbol.cpp -lstdc++
 
 # link rule
-cleanbuild: lexer_silent parser_silent src/iohandler.c
-	$(CC) -o compiler.out src/lex.yy.c src/y.tab.c src/iohandler.c
+cleanbuild: lexer_silent parser_silent src/iohandler.c src/symbol.cpp
+	$(CC) -o compiler.out src/lex.yy.c src/y.tab.c src/iohandler.c src/symbol.cpp
 	rm -f src/y.* src/lex.*
 
 # run rule
