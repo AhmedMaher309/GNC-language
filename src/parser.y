@@ -26,13 +26,16 @@
     int ivalue;
     float fvalue;
     char cvalue;
+    char* svalue;
+   //TODO node type will be put here to be the type of any scopes tokens
 };
 
 %token <ivalue> INTEGER
 %token <fvalue> FLOAT
 %token <ivalue> BOOL
 %token <cvalue> CHAR
-%token TYPE_INT TYPE_FLOAT TYPE_CHAR TYPE_BOOL TYPE_VOID
+%token <svalue> STRING
+%token TYPE_INT TYPE_FLOAT TYPE_CHAR TYPE_BOOL TYPE_STRING TYPE_VOID
 %token CONSTANT
 %token ENUM
 %token WHILE FOR BREAK
@@ -200,6 +203,7 @@ type: TYPE_INT
       | TYPE_FLOAT
       | TYPE_CHAR
       | TYPE_BOOL
+      | TYPE_STRING
       ;
 
 parameters: type IDENTIFIER
@@ -211,6 +215,7 @@ rvalue: INTEGER
         | FLOAT
         | CHAR
         | BOOL
+        | STRING
         ;
 
 enum_list: IDENTIFIER 

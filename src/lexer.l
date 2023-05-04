@@ -18,12 +18,14 @@ TYPE_INT    "int"
 TYPE_FLOAT  "float"
 TYPE_CHAR   "char"
 TYPE_BOOL   "bool"
+TYPE_STRING "string"
 TYPE_VOID   "void"
 IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*
 INTEGER     [-+]?[0-9]+
 FLOAT       [-+]?[0-9]+.[0-9]+
 BOOL        true|false
-CHAR        '.'
+CHAR        \'.?\'
+STRING      \".*\"
 CONSTANT    "const"
 
 %%
@@ -34,12 +36,14 @@ CONSTANT    "const"
 {FLOAT}                                                 { yylval.fvalue = atof(yytext); return FLOAT; }
 {BOOL}                                                  { yylval.cvalue = (strcmp(yytext, "true") == 0) ? 1 : 0; return BOOL; }
 {CHAR}                                                  { yylval.cvalue = yytext[1]; return CHAR; } 
+{STRING}                                                { yylval.svalue = strdup(yytext+1); yylval.svalue[strlen(yylval.svalue)-1] = '\0'; return STRING; }
 
     /* Data type tokens */
 {TYPE_INT}                                              { return TYPE_INT; }
 {TYPE_FLOAT}                                            { return TYPE_FLOAT; }
 {TYPE_CHAR}                                             { return TYPE_CHAR; }
 {TYPE_BOOL}                                             { return TYPE_BOOL; }
+{TYPE_STRING}                                           { return TYPE_STRING; }
 {TYPE_VOID}                                             { return TYPE_VOID; }
 {CONSTANT}                                              { return CONSTANT; }
 

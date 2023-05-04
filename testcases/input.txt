@@ -6,6 +6,8 @@ int factorial(int n);
 int main() {
      /* Variable declaration and initialization */
     int x = 5;
+    string str;
+    string str2 = "kjaslhfd";
     const int z = 10;
     enum months current_month = APR;
     /* If-then-else statement */
