@@ -268,9 +268,25 @@ int main(int argc, char **argv) {
     lex_init();
     yyparse();
     lex_deinit();
-    
-    testFunc();
+    struct symbol *symbols[5] = {};
+    struct symbol* sym1 =  createSymbol("first_var", "int");
+    struct symbol* sym2 =  createSymbol("second_var", "int");
+    struct symbol* sym3 =  createSymbol("third_var", "float");
+    struct symbol* sym4 =  createSymbol("forth_var", "string");
+    struct symbol* sym5 =  createSymbol("fifth_var", "bool");
+    addSymbol("first_var", sym1);
+    addSymbol("second_var", sym2);
+    addSymbol("third_var", sym3);
+    addSymbol("forth_var", sym4);
+    addSymbol("fifth_var", sym5);
+    printSymbolTable();
 
+    modifySymbolInTable("second_var", "234");
+    modifySymbolInTable("third_var", "234.56");
+    modifySymbolInTable("forth_var", "str value");
+    modifySymbolInTable("fifth_var", "1");
+    printSymbolTable();
+    
     return 0;
 }
 
