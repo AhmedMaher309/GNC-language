@@ -64,6 +64,19 @@ int main() {
     else{
         /*do any thing or dont*/
     }
+    
+switch (num) {
+        case 1:
+            break;
+        case 2:
+           x =187;
+            break;
+        case 3:
+            break;
+        default:
+            break;
+    };
+
     return 0;
 }
 
