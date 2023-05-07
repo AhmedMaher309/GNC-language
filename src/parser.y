@@ -208,7 +208,7 @@ type: TYPE_INT
 
 parameters: type IDENTIFIER
 	  | type IDENTIFIER ',' parameters
-      |%empty
+      | %empty
       ;
 
 rvalue: INTEGER
@@ -224,11 +224,11 @@ enum_list: IDENTIFIER
            | IDENTIFIER ',' enum_list
            ;
 
-case_list:  case_list CASE rvalue ':' stmt_list BREAK ';' 
-            | CASE rvalue ':' stmt_list BREAK ';' 
+case_list:  case_list CASE rvalue ':' break_stmt_list 
+            | CASE rvalue ':' break_stmt_list 
             ;
 
-case_default: DEFAULT ':' stmt_list BREAK ';'
+case_default: DEFAULT ':' break_stmt_list 
             ;
             
 expr_list: expr
