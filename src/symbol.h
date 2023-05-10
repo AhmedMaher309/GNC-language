@@ -1,20 +1,24 @@
-#ifdef __cplusplus
-extern "C"
-{
-#endif
+#include <iostream>
+#include <string>
+#include <unordered_map>
 
-void printSymbolData(struct symbol * symbol);
-struct symbol * createSymbol(char* name, char* varType);
-void setValue(char * value, struct symbol * sym);
-char * getValue(struct symbol * sym);
-//void markAsDeclared(struct symbol * symbol);
+class Symbol {
+private:
+    std::string name;
+    std::string varType;
+    std::string value = "0xgarbage";
+    bool isDeclared = false;
 
-void addSymbol(char* key, struct symbol* value);
-void printSymbolByKey( char* keystr);
-void modifySymbolInTable(char* key, char* modification);
-void printSymbolTable();
+public:
+    Symbol(std::string name, std::string varType);
+    void setName(std::string name);
+    void setVarType(std::string varType);
+    void setValue(std::string value);
+    void setIsDeclared(bool isDeclared);
+    void print();
 
-#ifdef __cplusplus
-}
-#endif
-
+    std::string getName();
+    std::string getVarType();
+    std::string getValue();
+    bool checkDeclared();
+};

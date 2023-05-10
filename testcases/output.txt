@@ -18,6 +18,8 @@ Identifier Token: factorial
 Identifier Token: n
 Identifier Token: main
 Identifier Token: x
+Identifier Token: str
+Identifier Token: str2
 Identifier Token: z
 Identifier Token: months
 Identifier Token: current_month

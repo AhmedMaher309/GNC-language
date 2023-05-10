@@ -12,12 +12,12 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
-    #include "symbol.h"
+    #include "symboltable.h"
     extern void lex_init(void);
     extern void lex_deinit(void);
     extern int yyleng;
     extern int yy_flex_debug;
-    int yydebug;
+    extern int yydebug;
     extern int yylex(void);
     int yyerror(const char* s);
 %}
@@ -268,25 +268,31 @@ int main(int argc, char **argv) {
     lex_init();
     yyparse();
     lex_deinit();
-    struct symbol *symbols[5] = {};
-    struct symbol* sym1 =  createSymbol("first_var", "int");
-    struct symbol* sym2 =  createSymbol("second_var", "int");
-    struct symbol* sym3 =  createSymbol("third_var", "float");
-    struct symbol* sym4 =  createSymbol("forth_var", "string");
-    struct symbol* sym5 =  createSymbol("fifth_var", "bool");
-    addSymbol("first_var", sym1);
-    addSymbol("second_var", sym2);
-    addSymbol("third_var", sym3);
-    addSymbol("forth_var", sym4);
-    addSymbol("fifth_var", sym5);
-    printSymbolTable();
 
-    modifySymbolInTable("second_var", "234");
-    modifySymbolInTable("third_var", "234.56");
-    modifySymbolInTable("forth_var", "str value");
-    modifySymbolInTable("fifth_var", "1");
-    printSymbolTable();
-    
+
+    Symbol* sym1 = new Symbol("first", "int");
+    Symbol* sym2 = new Symbol("second", "float");
+    Symbol* sym3 = new Symbol("third", "char");
+    Symbol* sym4 = new Symbol("fourth", "double");
+    Symbol* sym5 = new Symbol("fifth", "bool");
+
+    SymbolTable table;
+
+    table.addSymbolInTable(sym1);
+    table.addSymbolInTable(sym2);
+    table.addSymbolInTable(sym3);
+    table.addSymbolInTable(sym4);
+    table.addSymbolInTable(sym5);
+
+    table.modifySymbolInTable(sym1, "5");
+    table.modifySymbolInTable(sym2, "5.45");
+    table.modifySymbolInTable(sym5, "true");
+
+    table.printSymbolTable();
+
+    table.removeSymbolFromTable(sym3);
+    table.printSymbolTable();
+
     return 0;
 }
 
