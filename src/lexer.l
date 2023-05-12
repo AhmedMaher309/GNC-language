@@ -47,23 +47,23 @@ CONSTANT    "const"
 {TYPE_VOID}                                             { return TYPE_VOID; }
 {CONSTANT}                                              { return CONSTANT; }
 
-enum                                                    { return ENUM; }
+"enum"                                                    { return ENUM; }
     /* Loops and breaks */
-while                                                   { return WHILE; }
-for                                                     { return FOR; }
-break                                                   { return BREAK; }
+"while"                                                   { return WHILE; }
+"for"                                                     { return FOR; }
+"break"                                                   { return BREAK; }
  
     /* if, else, elseif, switch cases */
-if                                                      { return IF; }
-else                                                    { return ELSE; }
-switch                                                  { return SWITCH; }
-case                                                    { return CASE; }
-default                                                 { return DEFAULT; }
-return                                                  { return RETURN; }
+"if"                                                      { return IF; }
+"else"                                                    { return ELSE; }
+"switch"                                                  { return SWITCH; }
+"case"                                                    { return CASE; }
+"default"                                                 { return DEFAULT; }
+"return"                                                  { return RETURN; }
 
 
      /* printing */
-print                                                   { return PRINT; }
+"print"                                                   { return PRINT; }
 
     /* mathematical operators */
 "+"                                                     { return PLUS; }
