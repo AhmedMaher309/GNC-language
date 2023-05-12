@@ -20,23 +20,58 @@
     extern int yydebug;
     extern int yylex(void);
     int yyerror(const char* s);
+
+    SymbolTable table;
 %}
 
 /* ### Regular Definitions ### */
 %union {
-    int ivalue;
-    float fvalue;
-    char cvalue;
-    char* svalue;
+
+    struct 
+    {
+        const char* type;
+        const char* value;
+    } ivalue;
+
+    struct 
+    {
+        const char* type;
+        const char* value;
+    } fvalue;
+
+    struct 
+    {
+        const char* type;
+        const char* value;
+    } cvalue;
+
+    struct 
+    {
+        const char* type;
+        const char* value;
+    } bvalue;
+
+    struct 
+    {
+        const char* type;
+        const char* value;
+    } svalue;
+
+    struct 
+    {
+        const char* type;
+        const char* value;
+    } gvalue;
+
    //TODO node type will be put here to be the type of any scopes tokens
 };
 
 %token <ivalue> INTEGER
 %token <fvalue> FLOAT
-%token <ivalue> BOOL
+%token <bvalue> BOOL
 %token <cvalue> CHAR
 %token <svalue> STRING
-%token TYPE_INT TYPE_FLOAT TYPE_CHAR TYPE_BOOL TYPE_STRING TYPE_VOID
+%token <gvalue> TYPE_INT TYPE_FLOAT TYPE_CHAR TYPE_BOOL TYPE_STRING TYPE_VOID
 %token CONSTANT
 %token ENUM
 %token WHILE FOR BREAK
@@ -47,10 +82,12 @@
 %token MORE LESS EQU_EQU MORE_OR_EQU LESS_OR_EQU NOT_EQU
 %token AND OR NOT
 %token REPEAT UNTIL
-%token IDENTIFIER
+%token <gvalue> IDENTIFIER
 %token COMMENT
 
-
+%type <gvalue> type
+%type <gvalue> expr
+%type <gvalue> rvalue
 
 /*to specify the precedence and associativity of operators*/
 %left PLUS MINUS
@@ -104,12 +141,12 @@ break_stmt_list: stmt_list BREAK ';'
 
  /*/////////////////// third degree /////////////////////////////*/
 
-genn_stmt:  type IDENTIFIER ';'
+genn_stmt:  type IDENTIFIER ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); }
            | type IDENTIFIER EQU func_call ';'
            | IDENTIFIER EQU func_call ';'
            | CONSTANT type IDENTIFIER EQU rvalue ';'
-           | IDENTIFIER EQU expr ';'
-           | type IDENTIFIER EQU expr ';'
+           | IDENTIFIER EQU expr ';' { table.setSymbolByNameInTable($1.value, $3.value); }
+           | type IDENTIFIER EQU expr ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); table.setSymbolByNameInTable($2.value, $4.value); }
            | expr ';'
            ;
 
@@ -200,11 +237,11 @@ while_define: WHILE '(' expr ')' '{' stmt_list '}'
 
  /*//////////////////////fifth degree /////////////////////////////// */
 
-type: TYPE_INT
-      | TYPE_FLOAT
-      | TYPE_CHAR
-      | TYPE_BOOL
-      | TYPE_STRING
+type: TYPE_INT { $$.type = "TYPE"; $$.value = "int"; }
+      | TYPE_FLOAT { $$.type = "TYPE"; $$.value = "float"; }
+      | TYPE_CHAR { $$.type = "TYPE"; $$.value = "char"; }
+      | TYPE_BOOL { $$.type = "TYPE"; $$.value = "bool"; }
+      | TYPE_STRING { $$.type = "TYPE"; $$.value = "string"; }
       ;
 
 parameters: type IDENTIFIER
@@ -212,11 +249,11 @@ parameters: type IDENTIFIER
       |%empty
       ;
 
-rvalue: INTEGER
-        | FLOAT
-        | CHAR
-        | BOOL
-        | STRING
+rvalue: INTEGER { $$.type = "int"; $$.value = $1.value; }
+        | FLOAT { $$.type = "float"; $$.value = $1.value; }
+        | CHAR { $$.type = "char"; $$.value = $1.value; }
+        | BOOL { $$.type ="bool"; $$.value = $1.value; }
+        | STRING { $$.type = "string"; $$.value = $1.value; }
         ;
 
 enum_list: IDENTIFIER 
@@ -236,7 +273,7 @@ expr_list: expr
          | expr_list ',' expr
          ;
 
-expr: rvalue
+expr: rvalue { $$ = $1; }
      | IDENTIFIER
      | expr PLUS expr
      | expr MINUS expr
@@ -254,7 +291,7 @@ expr: rvalue
      | expr OR expr
      | expr INC 
      | expr DEC
-     | NOT expr 
+     | NOT expr
      ;
 
 %%
@@ -269,29 +306,7 @@ int main(int argc, char **argv) {
     yyparse();
     lex_deinit();
 
-
-    Symbol* sym1 = new Symbol("first", "int");
-    Symbol* sym2 = new Symbol("second", "float");
-    Symbol* sym3 = new Symbol("third", "char");
-    Symbol* sym4 = new Symbol("fourth", "double");
-    Symbol* sym5 = new Symbol("fifth", "bool");
-
-    SymbolTable table;
-
-    table.addSymbolInTable(sym1);
-    table.addSymbolInTable(sym2);
-    table.addSymbolInTable(sym3);
-    table.addSymbolInTable(sym4);
-    table.addSymbolInTable(sym5);
-
-    table.modifySymbolInTable(sym1, "5");
-    table.modifySymbolInTable(sym2, "5.45");
-    table.modifySymbolInTable(sym5, "true");
-
-    table.printSymbolTable();
-
-    table.removeSymbolFromTable(sym3);
-    table.printSymbolTable();
+    table.printSymbolTable(); 
 
     return 0;
 }

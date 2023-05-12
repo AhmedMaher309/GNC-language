@@ -32,11 +32,11 @@ CONSTANT    "const"
     /* ############ Rules ############ */
 
     /* Variable tokens section */
-{INTEGER}                                               { yylval.ivalue = atoi(yytext); return INTEGER; }
-{FLOAT}                                                 { yylval.fvalue = atof(yytext); return FLOAT; }
-{BOOL}                                                  { yylval.cvalue = (strcmp(yytext, "true") == 0) ? 1 : 0; return BOOL; }
-{CHAR}                                                  { yylval.cvalue = yytext[1]; return CHAR; } 
-{STRING}                                                { yylval.svalue = strdup(yytext+1); yylval.svalue[strlen(yylval.svalue)-1] = '\0'; return STRING; }
+{INTEGER}                                               { yylval.ivalue.value = strdup(yytext); return INTEGER; }
+{FLOAT}                                                 { yylval.fvalue.value = strdup(yytext); return FLOAT; }
+{BOOL}                                                  { if (strcmp(yytext, "true") == 0) {yylval.bvalue.value = "1";} else {yylval.bvalue.value = "0";} return BOOL; }
+{CHAR}                                                  { yylval.cvalue.value = strdup(yytext); return CHAR; }
+{STRING}                                                { yylval.svalue.value = strdup(yytext); return STRING; }
 
     /* Data type tokens */
 {TYPE_INT}                                              { return TYPE_INT; }
@@ -103,7 +103,7 @@ CONSTANT    "const"
     /* comments */
 "/*".*"*/"                                              { return COMMENT; }
 
-{IDENTIFIER}                                            { fprintf(yyout, "Identifier Token: %s\n", yytext); return IDENTIFIER; }
+{IDENTIFIER}                                            { yylval.gvalue.type = "ID"; yylval.gvalue.value = strdup(yytext); fprintf(yyout, "Identifier Token: %s\n", yytext); return IDENTIFIER;}
  
 [ \t\r\n]                                               { /* ignore whitespace */; }
 .                                                       { fprintf(yyout, "invalid character\n"); }

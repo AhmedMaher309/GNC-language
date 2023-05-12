@@ -19,6 +19,20 @@ void SymbolTable::modifySymbolInTable(Symbol *symbol, string value) {
     }
 }
 
+void SymbolTable::setSymbolByNameInTable(string symbolname, string value) {
+    if (symbolTable.find(symbolname) != symbolTable.end()) {
+        symbolTable[symbolname]->setValue(value);
+        symbolTable[symbolname]->setIsDeclared(true);
+    }
+}
+
+string SymbolTable::getSymbolByNameInTable(string symbolname) {
+    if (symbolTable.find(symbolname) != symbolTable.end()) {
+        return symbolTable[symbolname]->getValue();
+    }
+    return "";
+}
+
 void SymbolTable::removeSymbolFromTable(Symbol *symbol) {
     symbolTable.erase(symbol->getName());
 }
