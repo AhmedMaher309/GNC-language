@@ -18,10 +18,13 @@ Identifier Token: factorial
 Identifier Token: n
 Identifier Token: main
 Identifier Token: x
+Identifier Token: str
+Identifier Token: str2
 Identifier Token: z
 Identifier Token: months
 Identifier Token: current_month
 Identifier Token: APR
+Identifier Token: y
 Identifier Token: x
 Identifier Token: y
 Identifier Token: y
@@ -56,3 +59,5 @@ Identifier Token: c
 Identifier Token: u
 Identifier Token: c
 Identifier Token: l
+Identifier Token: num
+Identifier Token: x
