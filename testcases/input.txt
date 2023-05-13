@@ -1,15 +1,6 @@
-int xx = 666;
-int yy = xx;
-
 int x;
-const int w = 7;
+float y = 5.1;
 x = 8;
-int y = x;
-char c = 'g';
-string str = "Youssef";
-bool cond = true;
-float h = 12.34;
-x=4;
-
-
-
+string w="habiba";
+char c='c';
+const int z =1;

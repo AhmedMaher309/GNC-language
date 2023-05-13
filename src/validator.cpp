@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <algorithm>
 #include "validator.h"
 
 using namespace std;
@@ -17,18 +18,28 @@ bool Validator ::isInt(string value)
     }
     return isInteger;
 }
-bool Validator::checkFloat(string value)
+pair<bool, bool> Validator::checkFloat(string value)
 {
     bool isfloat = 0;
+    bool isnum = 1;
     for (int i = 0; i < value.length(); i++)
     {
         if (value[i] == '.')
         {
             isfloat = 1;
+            value.erase(remove(value.begin(), value.end(), '.'), value.end());
             break;
         }
     }
-    return isfloat;
+    for (int i = 0; i < value.length(); i++)
+    {
+        if (!isdigit(value[i]))
+        {
+            isnum = 0;
+            break;
+        }
+    }
+    return make_pair(isnum, isfloat);
 }
 bool Validator::checkString(string value)
 {
@@ -46,15 +57,12 @@ bool Validator::checkChar(string value)
 }
 bool Validator ::check_syntax(string type, string value, bool isinitialised)
 {
-    if (! isinitialised)
-    {
+    if (!isinitialised)
         return 1;
-    }
+
     bool isInteger = isInt(value);
     if (type == "int")
-    {
         return isInteger;
-    }
     if (type == "bool")
     {
         if (isInteger && (value == "1" || value == "0"))
@@ -63,12 +71,25 @@ bool Validator ::check_syntax(string type, string value, bool isinitialised)
             return 0;
     }
     if (type == "float")
-        return checkFloat(value);
-
+    {
+        pair<bool, bool> ret = checkFloat(value);
+        if (ret.first && ret.second)
+            return 1;
+        else
+            return 0;
+    }
     if (type == "string")
         return checkString(value);
 
     if (type == "char")
         return checkChar(value);
     return 0;
+}
+
+bool Validator::check_constant(bool isinitialised, bool isconstant)
+{
+    if (isinitialised && isconstant)
+        return 1;
+    else
+        return 0;
 }

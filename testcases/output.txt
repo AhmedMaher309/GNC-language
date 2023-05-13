@@ -1,13 +1,6 @@
-Identifier Token: xx
-Identifier Token: yy
-Identifier Token: xx
-Identifier Token: x
-Identifier Token: w
 Identifier Token: x
 Identifier Token: y
 Identifier Token: x
+Identifier Token: w
 Identifier Token: c
-Identifier Token: str
-Identifier Token: cond
-Identifier Token: h
-Identifier Token: x
+Identifier Token: z

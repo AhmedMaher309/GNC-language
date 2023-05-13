@@ -146,9 +146,9 @@ break_stmt_list: stmt_list BREAK ';'
 genn_stmt:  type IDENTIFIER ';' {  table.addSymbolInTable(new Symbol($2.value,$1.value)); }
            | type IDENTIFIER EQU func_call ';'
            | IDENTIFIER EQU func_call ';'
-           | CONSTANT type IDENTIFIER EQU rvalue ';' {Symbol* sy= new Symbol($3.value, $2.value); sy->setIsConstant(1); table.addSymbolInTable(sy); table.modifySymbolInTable(sy,$5.value);}
-           | IDENTIFIER EQU expr ';' { table.setSymbolByNameInTable($1.value, $3.value); }
-           | type IDENTIFIER EQU expr ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); table.setSymbolByNameInTable($2.value, $4.value); }
+           | CONSTANT type IDENTIFIER EQU rvalue ';' {Symbol* sy= new Symbol($3.value, $2.value); sy->setIsInitialised(1); sy->setIsConstant(1);bool checker = valid.check_syntax(sy->getVarType(),$5.value,sy->checkInitialisation());bool constchecker= valid.check_constant(sy->checkInitialisation(),sy->checkConstant()); if (checker && constchecker) {table.addSymbolInTable(sy); table.modifySymbolInTable(sy,$5.value);} else {printf("error mismatching \n");}}
+           | IDENTIFIER EQU expr ';' {Symbol* sy = table.getSymbolObjectbyName($1.value); sy->setIsInitialised(1); bool checker = valid.check_syntax(sy->getVarType(),$3.value,sy->checkInitialisation());if(checker) {table.setSymbolByNameInTable($1.value, $3.value);} else {printf("error mismatching\n");table.removeSymbolFromTable(sy);}}
+           | type IDENTIFIER EQU expr ';' { Symbol* sy = new Symbol($2.value,$1.value); sy->setIsInitialised(1); bool checker = valid.check_syntax(sy->getVarType(),$4.value,sy->checkInitialisation()); if (checker) {table.addSymbolInTable(sy); table.setSymbolByNameInTable($2.value, $4.value);} else {printf("error mismatching \n");} }
            | expr ';'
            ;
 
@@ -275,7 +275,7 @@ expr_list: expr
          | expr_list ',' expr
          ;
 
-expr: rvalue { $$ = $1; }
+expr: rvalue { $$ = $1; /*printf($1.type); printf($1.value);*/ }
      | IDENTIFIER { $$.type = $1.type/*ELMAFROUD HENA NEGIB TYPE EL SYMBOL*/; $$.value = table.getSymbolByNameInTable($1.value); }
      | expr PLUS expr
      | expr MINUS expr
