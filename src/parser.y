@@ -152,7 +152,9 @@ break_stmt_list: stmt_list BREAK ';'
 
  /*/////////////////// third degree /////////////////////////////*/
 
-genn_stmt:  type IDENTIFIER ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); printf("ID @ %d:%d\n", @2.first_line, @2.first_column); }
+genn_stmt:  type IDENTIFIER ';'                         {   table.addSymbolInTable(new Symbol($2.value,$1.value));
+                                                            printf("ID @ %d:%d\n", @2.first_line, @2.first_column);
+                                                        }
            | type IDENTIFIER EQU func_call ';'
            | IDENTIFIER EQU func_call ';'
            | CONSTANT type IDENTIFIER EQU rvalue ';'    {
@@ -170,13 +172,16 @@ genn_stmt:  type IDENTIFIER ';' { table.addSymbolInTable(new Symbol($2.value,$1.
                                                         }
            | IDENTIFIER EQU expr ';'                    {
                                                             Symbol* sym = table.getSymbolObjectbyName($1.value); 
-                                                            bool checker = valid.checkSyntax(sym->getVarType(),$3.value);
-                                                            if(checker) {
-                                                                table.setSymbolByNameInTable($1.value, $3.value);
-                                                                }
-                                                            else {
-                                                                printf("error mismatching\n");
-                                                                }
+                                                            if (sym != NULL)
+                                                            {
+                                                                bool checker = valid.checkSyntax(sym->getVarType(),$3.value);
+                                                                if(checker) {
+                                                                    table.setSymbolByNameInTable($1.value, $3.value);
+                                                                    }
+                                                                else {
+                                                                    printf("error mismatching\n");
+                                                                    }
+                                                            }
                                                             printf("ID @ %d:%d\n", @1.first_line, @1.first_column);
                                                         }
            | type IDENTIFIER EQU expr ';'               { 
@@ -324,24 +329,24 @@ expr_list: expr
          ;
 
 expr: rvalue { $$ = $1; }
-     | IDENTIFIER { $$.type = $1.type/*ELMAFROUD HENA NEGIB TYPE EL SYMBOL*/; $$.value = table.getSymbolByNameInTable($1.value); }
-     | expr PLUS expr { $$.type = "TEMP";$$.value = "TEMP"; }
-     | expr MINUS expr { $$.type = "TEMP";$$.value = "TEMP"; }
-     | expr MULT expr { $$.type = "TEMP";$$.value = "TEMP"; }
-     | expr DIV expr { $$.type = "TEMP";$$.value = "TEMP"; }
-     | expr POWER expr { $$.type = "TEMP";$$.value = "TEMP"; }
-     | expr MODULE expr { $$.type = "TEMP";$$.value = "TEMP"; }
-     | expr EQU_EQU expr { $$.type = "TEMP";$$.value = "TEMP"; }
-     | expr NOT_EQU expr { $$.type = "TEMP";$$.value = "TEMP"; }
-     | expr MORE_OR_EQU expr { $$.type = "TEMP";$$.value = "TEMP"; }
-     | expr LESS_OR_EQU expr { $$.type = "TEMP";$$.value = "TEMP"; }
-     | expr MORE expr { $$.type = "TEMP";$$.value = "TEMP"; }
-     | expr LESS expr { $$.type = "TEMP";$$.value = "TEMP"; }
-     | expr AND expr { $$.type = "TEMP";$$.value = "TEMP"; }
-     | expr OR expr { $$.type = "TEMP";$$.value = "TEMP"; }
-     | expr INC  { $$.type = "TEMP";$$.value = "TEMP"; }
-     | expr DEC { $$.type = "TEMP";$$.value = "TEMP"; }
-     | NOT expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | IDENTIFIER { $$.type = $1.type/*ELMAFROUD HENA NEGIB TYPE EL SYMBOL*/; $$.value = table.getSymbolByNameInTable($1.value); if($$.value == NULL) {$$.value = "TEMP";}; }
+     | expr PLUS expr { $$.type = "TEMP"; $$.value = "TEMP"; }
+     | expr MINUS expr { $$.type = "TEMP"; $$.value = "TEMP"; }
+     | expr MULT expr { $$.type = "TEMP"; $$.value = "TEMP"; }
+     | expr DIV expr { $$.type = "TEMP"; $$.value = "TEMP"; }
+     | expr POWER expr { $$.type = "TEMP"; $$.value = "TEMP"; }
+     | expr MODULE expr { $$.type = "TEMP"; $$.value = "TEMP"; }
+     | expr EQU_EQU expr { $$.type = "TEMP"; $$.value = "TEMP"; }
+     | expr NOT_EQU expr { $$.type = "TEMP"; $$.value = "TEMP"; }
+     | expr MORE_OR_EQU expr { $$.type = "TEMP"; $$.value = "TEMP"; }
+     | expr LESS_OR_EQU expr { $$.type = "TEMP"; $$.value = "TEMP"; }
+     | expr MORE expr { $$.type = "TEMP"; $$.value = "TEMP"; }
+     | expr LESS expr { $$.type = "TEMP"; $$.value = "TEMP"; }
+     | expr AND expr { $$.type = "TEMP"; $$.value = "TEMP"; }
+     | expr OR expr { $$.type = "TEMP"; $$.value = "TEMP"; }
+     | expr INC  { $$.type = "TEMP"; $$.value = "TEMP"; }
+     | expr DEC { $$.type = "TEMP"; $$.value = "TEMP"; }
+     | NOT expr { $$.type = "TEMP"; $$.value = "TEMP"; }
      ;
 
 %%
@@ -402,6 +407,6 @@ static int yyreport_syntax_error(const yypcontext_t *ctx, void* scanner)
         }
     }
 
-    fprintf (stderr, "\n");
+    fprintf(stderr, "\n");
     return res;
 }

@@ -5,6 +5,8 @@
 
 #include "symboltable.h"
 
+#define C_NULL 0
+
 using namespace std;
 
 void SymbolTable::addSymbolInTable(Symbol *symbol)
@@ -42,7 +44,7 @@ const char *SymbolTable::getSymbolByNameInTable(std::string symbolname)
         cstr_value[str_value.length()] = '\0';
         return cstr_value;
     }
-    return NULL;
+    return C_NULL;
 }
 
 Symbol *SymbolTable::getSymbolObjectbyName(std::string symbolname)
@@ -51,7 +53,7 @@ Symbol *SymbolTable::getSymbolObjectbyName(std::string symbolname)
     {
         return symbolTable[symbolname];
     }
-    return nullptr;
+    return C_NULL;
 }
 void SymbolTable::removeSymbolFromTable(Symbol *symbol)
 {

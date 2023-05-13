@@ -118,7 +118,7 @@ CONSTANT    "const"
 
 void lex_init(void*& scanner)
 {
-    yylex_init (&scanner);
+    yylex_init(&scanner);
 
     FILE* file;
 
@@ -177,5 +177,5 @@ void lex_deinit(void*& scanner)
         }
     }
 
-    yylex_destroy (scanner);
+    yylex_destroy(scanner);
 }
