@@ -12,10 +12,8 @@ void SymbolTable::addSymbolInTable(Symbol *symbol)
     symbolTable[symbol->getName()] = symbol;
 }
 
-void SymbolTable::modifySymbolInTable(Symbol *symbol, string value)
-{
-    if (symbolTable.find(symbol->getName()) != symbolTable.end())
-    {
+void SymbolTable::modifySymbolInTable(Symbol *symbol, std::string value) {
+    if (symbolTable.find(symbol->getName()) != symbolTable.end()) {
         symbolTable[symbol->getName()]->setValue(value);
         symbolTable[symbol->getName()]->setIsDeclared(true);
         if (value.length() != 0)
@@ -23,10 +21,8 @@ void SymbolTable::modifySymbolInTable(Symbol *symbol, string value)
     }
 }
 
-void SymbolTable::setSymbolByNameInTable(string symbolname, string value)
-{
-    if (symbolTable.find(symbolname) != symbolTable.end())
-    {
+void SymbolTable::setSymbolByNameInTable(std::string symbolname, std::string value) {
+    if (symbolTable.find(symbolname) != symbolTable.end()) {
         symbolTable[symbolname]->setValue(value);
         symbolTable[symbolname]->setIsDeclared(true);
         if (value.length() != 0)
@@ -34,13 +30,15 @@ void SymbolTable::setSymbolByNameInTable(string symbolname, string value)
     }
 }
 
-string SymbolTable::getSymbolByNameInTable(string symbolname)
-{
-    if (symbolTable.find(symbolname) != symbolTable.end())
-    {
-        return symbolTable[symbolname]->getValue();
+const char* SymbolTable::getSymbolByNameInTable(std::string symbolname) {
+    if (symbolTable.find(symbolname) != symbolTable.end()) {
+        std::string str_value = symbolTable[symbolname]->getValue();
+        char* cstr_value = new char[str_value.length()+1]; 
+        str_value.copy(cstr_value,str_value.length());
+        cstr_value[str_value.length()] = '\0';
+        return cstr_value;
     }
-    return "";
+    return NULL;
 }
 
 void SymbolTable::removeSymbolFromTable(Symbol *symbol)

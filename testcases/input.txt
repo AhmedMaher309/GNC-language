@@ -1,3 +1,6 @@
+int xx = 666;
+int yy = xx;
+
 int x;
 const int w = 7;
 x = 8;
@@ -7,4 +10,6 @@ string str = "Youssef";
 bool cond = true;
 float h = 12.34;
 x=4;
+
+
 
