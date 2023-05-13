@@ -127,6 +127,7 @@ program: program stmt
 
 stmt: genn_stmt
       | func_stmt
+      | print_stmt
       | for_stmt
       | if_stmt
       | enum_stmt
@@ -154,7 +155,7 @@ break_stmt_list: stmt_list BREAK ';'
 genn_stmt:  type IDENTIFIER ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); printf("ID @ %d:%d\n", @2.first_line, @2.first_column); }
            | type IDENTIFIER EQU func_call ';'
            | IDENTIFIER EQU func_call ';'
-           | CONSTANT type IDENTIFIER EQU rvalue ';' { Symbol* sym = new Symbol($3.value, $2.value); sym->setIsConstant(1); table.addSymbolInTable(sy); table.modifySymbolInTable(sym,$5.value); printf("ID @ %d:%d\n", @3.first_line, @3.first_column); }
+           | CONSTANT type IDENTIFIER EQU rvalue ';' { Symbol* sym = new Symbol($3.value, $2.value); sym->setIsConstant(1); table.addSymbolInTable(sym); table.modifySymbolInTable(sym,$5.value); printf("ID @ %d:%d\n", @3.first_line, @3.first_column); }
            | IDENTIFIER EQU expr ';' { table.setSymbolByNameInTable($1.value, $3.value); printf("ID @ %d:%d\n", @1.first_line, @1.first_column); }
            | type IDENTIFIER EQU expr ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); table.setSymbolByNameInTable($2.value, $4.value); printf("ID @ %d:%d\n", @2.first_line, @2.first_column); }
            | expr ';'
@@ -165,6 +166,11 @@ func_stmt: func_proto
 	       | func_define
            | func_call
            ;
+
+
+print_stmt: PRINT '(' expr ')' ';'
+            ;
+
 
 for_stmt: for_proto
 	      | for_define
@@ -256,7 +262,7 @@ type: TYPE_INT { $$.type = "TYPE"; $$.value = "int"; }
 
 parameters: type IDENTIFIER
 	  | type IDENTIFIER ',' parameters
-      |%empty
+      | %empty
       ;
 
 rvalue: INTEGER { $$.type = "int"; $$.value = $1.value; }
@@ -272,11 +278,11 @@ enum_list: IDENTIFIER
            | IDENTIFIER ',' enum_list
            ;
 
-case_list:  case_list CASE rvalue ':' stmt_list BREAK ';' 
-            | CASE rvalue ':' stmt_list BREAK ';' 
+case_list:  case_list CASE rvalue ':' break_stmt_list 
+            | CASE rvalue ':' break_stmt_list   
             ;
 
-case_default: DEFAULT ':' stmt_list BREAK ';'
+case_default: DEFAULT ':' break_stmt_list 
             ;
             
 expr_list: expr
