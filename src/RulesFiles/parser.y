@@ -12,8 +12,8 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
-    #include "symboltable.h"
-    #include "validator.h"
+    #include "../SymbolTable/symboltable.h"
+    #include "../Validator/validator.h"
     extern void lex_init(void*&);
     extern void lex_deinit(void*&);
     extern int yylex(union YYSTYPE*, struct YYLTYPE*, void*);

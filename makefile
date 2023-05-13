@@ -6,13 +6,13 @@ IN = testcases/input.txt
 OUT = testcases/output.txt
 
 # link rule
-build: lexer parser src/iohandler.c src/symbol.cpp src/symboltable.cpp src/validator.cpp
-	$(CC) -o compiler.out src/lex.yy.c src/y.tab.c src/iohandler.c src/symbol.cpp src/symboltable.cpp  src/validator.cpp
+build: lexer parser  src/RulesFiles/iohandler.c  src/SymbolTable/symbol.cpp  src/SymbolTable/symboltable.cpp  src/Validator/validator.cpp
+	$(CC) -o compiler.out  src/RulesFiles/lex.yy.c  src/RulesFiles/y.tab.c  src/RulesFiles/iohandler.c  src/SymbolTable/symbol.cpp  src/SymbolTable/symboltable.cpp  src/Validator/validator.cpp
 
 # link rule
-cleanbuild: lexer_silent parser_silent src/iohandler.c src/symbol.cpp src/symboltable.cpp src/validator.cpp
-	$(CC) -o compiler.out src/lex.yy.c src/y.tab.c src/iohandler.c src/symbol.cpp src/symboltable.cpp src/validator.cpp
-	rm -f src/y.* src/lex.*
+cleanbuild: lexer_silent parser_silent  src/RulesFiles/iohandler.c  src/SymbolTable/symbol.cpp  src/SymbolTable/symboltable.cpp  src/Validator/validator.cpp
+	$(CC) -o compiler.out src/RulesFiles/lex.yy.c  src/RulesFiles/y.tab.c src/RulesFiles/iohandler.c  src/SymbolTable/symbol.cpp  src/SymbolTable/symboltable.cpp  src/Validator/validator.cpp
+	rm -f src/RulesFiles/y.* src/RulesFiles/lex.*
 
 # run rule
 run: 
@@ -24,24 +24,24 @@ clean:
 
 # clear rule
 clear: 
-	rm -f src/y.* src/lex.*
+	rm -f src/RulesFiles/y.* src/RulesFiles/lex.*
 	rm -f testcases/*.txt
 	rm -f compiler.out
 
 ####################################################################################################
 
 # compile rule
-lexer: src/lexer.l
-	$(LEX) -o src/lex.yy.c --debug --verbose src/lexer.l
+lexer: src/RulesFiles/lexer.l
+	$(LEX) -o src/RulesFiles/lex.yy.c --debug --verbose src/RulesFiles/lexer.l
 
 # compile rule
-lexer_silent: src/lexer.l
-	$(LEX) -o src/lex.yy.c --debug src/lexer.l
+lexer_silent: src/RulesFiles/lexer.l
+	$(LEX) -o src/RulesFiles/lex.yy.c --debug src/RulesFiles/lexer.l
 
 # compile rule
-parser: src/parser.y
-	$(YACC) -o src/y.tab.c -d --debug --verbose src/parser.y
+parser: src/RulesFiles/parser.y
+	$(YACC) -o src/RulesFiles/y.tab.c -d --debug --verbose src/RulesFiles/parser.y
 
 # compile rule
-parser_silent: src/parser.y
-	$(YACC) -o src/y.tab.c -d --debug src/parser.y
+parser_silent: src/RulesFiles/parser.y
+	$(YACC) -o src/RulesFiles/y.tab.c -d --debug src/RulesFiles/parser.y
