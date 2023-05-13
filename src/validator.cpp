@@ -46,29 +46,29 @@ bool Validator::checkChar(string value)
 }
 bool Validator ::check_syntax(string type, string value, bool isinitialised)
 {
-    if (isinitialised)
+    if (! isinitialised)
     {
-        bool isInteger = isInt(value);
-        if (type == "int")
-        {
-            return isInteger;
-        }
-        if (type == "bool")
-        {
-            if (isInteger && (value == "1" || value == "0"))
-                return 1;
-            else
-                return 0;
-        }
-        if (type == "float")
-            return checkFloat(value);
-
-        if (type == "string")
-            return checkString(value);
-
-        if (type == "char")
-            return checkChar(value);
-        return 0;
+        return 1;
     }
-    return 1;
+    bool isInteger = isInt(value);
+    if (type == "int")
+    {
+        return isInteger;
+    }
+    if (type == "bool")
+    {
+        if (isInteger && (value == "1" || value == "0"))
+            return 1;
+        else
+            return 0;
+    }
+    if (type == "float")
+        return checkFloat(value);
+
+    if (type == "string")
+        return checkString(value);
+
+    if (type == "char")
+        return checkChar(value);
+    return 0;
 }
