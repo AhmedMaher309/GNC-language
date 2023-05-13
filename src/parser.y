@@ -276,7 +276,12 @@ expr_list: expr
          ;
 
 expr: rvalue
-     | IDENTIFIER {table.setSymbolByNameInTable($$.value, table.getSymbolByNameInTable($1.value));}
+     | IDENTIFIER       { 
+                            std::string val = table.getSymbolByNameInTable($1.value);
+                            printf("%s\n",val.c_str());
+                            $$.value = val.c_str();
+                            printf("%s\n",$$.value);
+                        }
      | expr PLUS expr 
      | expr MINUS expr
      | expr MULT expr
@@ -320,3 +325,12 @@ int yyerror(char const *s)
 
 
 //Symbol* sy = table.getSymbolObjectByName($$.value); table.modifySymbolInTable(sy,table.getSymbolByNameInTable($1.value));
+
+/* 
+     std::string val = table.getSymbolByNameInTable($1.value);
+      char* buffer = new char[val.length() + 1]; 
+      strcpy(buffer, val.c_str()); 
+      printf(buffer); 
+      $$.value = (char*) malloc(val.length() + 1);
+      strcpy($$.value, val.c_str());
+      $$.value[val.length()] = '\0'; */

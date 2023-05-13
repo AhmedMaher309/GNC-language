@@ -34,12 +34,11 @@ void SymbolTable::setSymbolByNameInTable(string symbolname, string value)
     }
 }
 
-const char *SymbolTable::getSymbolByNameInTable(string symbolname)
+string SymbolTable::getSymbolByNameInTable(string symbolname)
 {
     if (symbolTable.find(symbolname) != symbolTable.end())
     {
-        // cout << symbolTable[symbolname]->getValue() << endl;
-        return symbolTable[symbolname]->getValue().c_str();
+        return symbolTable[symbolname]->getValue();
     }
     return "";
 }

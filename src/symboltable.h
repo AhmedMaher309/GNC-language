@@ -13,7 +13,7 @@ public:
     void addSymbolInTable(Symbol *symbol);
     void modifySymbolInTable(Symbol *symbol, string value);
     void setSymbolByNameInTable(string symbolname, string value);
-    const char *getSymbolByNameInTable(string symbolname);
+    string getSymbolByNameInTable(string symbolname);
     void removeSymbolFromTable(Symbol *symbol);
     void printSymbolTable();
 };
