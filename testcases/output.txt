@@ -52,6 +52,7 @@ Identifier Token: factorial
 Identifier Token: x
 Identifier Token: x
 Identifier Token: x
+Identifier Token: w
 Identifier Token: c
 Identifier Token: y
 Identifier Token: c

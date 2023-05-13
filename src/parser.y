@@ -155,9 +155,43 @@ break_stmt_list: stmt_list BREAK ';'
 genn_stmt:  type IDENTIFIER ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); printf("ID @ %d:%d\n", @2.first_line, @2.first_column); }
            | type IDENTIFIER EQU func_call ';'
            | IDENTIFIER EQU func_call ';'
-           | CONSTANT type IDENTIFIER EQU rvalue ';' { Symbol* sym = new Symbol($3.value, $2.value); sym->setIsConstant(1); table.addSymbolInTable(sym); table.modifySymbolInTable(sym,$5.value); printf("ID @ %d:%d\n", @3.first_line, @3.first_column); }
-           | IDENTIFIER EQU expr ';' { table.setSymbolByNameInTable($1.value, $3.value); printf("ID @ %d:%d\n", @1.first_line, @1.first_column); }
-           | type IDENTIFIER EQU expr ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); table.setSymbolByNameInTable($2.value, $4.value); printf("ID @ %d:%d\n", @2.first_line, @2.first_column); }
+           | CONSTANT type IDENTIFIER EQU rvalue ';'    {
+                                                            Symbol* sym= new Symbol($3.value, $2.value);
+                                                            sym->setIsInitialised(1); sym->setIsConstant(1);
+                                                            bool checker = valid.checkSyntax(sym->getVarType(),$5.value); 
+                                                            if (checker) {
+                                                                table.addSymbolInTable(sym);
+                                                                table.modifySymbolInTable(sym,$5.value);
+                                                                }
+                                                            else {
+                                                                printf("error mismatching \n");
+                                                                }
+                                                            printf("ID @ %d:%d\n", @3.first_line, @3.first_column);
+                                                        }
+           | IDENTIFIER EQU expr ';'                    {
+                                                            Symbol* sym = table.getSymbolObjectbyName($1.value); 
+                                                            bool checker = valid.checkSyntax(sym->getVarType(),$3.value);
+                                                            if(checker) {
+                                                                table.setSymbolByNameInTable($1.value, $3.value);
+                                                                }
+                                                            else {
+                                                                printf("error mismatching\n");
+                                                                }
+                                                            printf("ID @ %d:%d\n", @1.first_line, @1.first_column);
+                                                        }
+           | type IDENTIFIER EQU expr ';'               { 
+                                                            Symbol* sym = new Symbol($2.value,$1.value);
+                                                            sym->setIsInitialised(1); 
+                                                            bool checker = valid.checkSyntax(sym->getVarType(),$4.value); 
+                                                        if (checker) {
+                                                                table.addSymbolInTable(sym); 
+                                                                table.setSymbolByNameInTable($2.value, $4.value);
+                                                                } 
+                                                            else {
+                                                                printf("error mismatching \n");
+                                                                }
+                                                            printf("ID @ %d:%d\n", @2.first_line, @2.first_column);
+                                                        }
            | expr ';'
            ;
 
