@@ -14,19 +14,27 @@
     #include <string.h>
     #include "symboltable.h"
     #include "validator.h"
-    extern void lex_init(void);
-    extern void lex_deinit(void);
-    extern int yyleng;
-    extern int yy_flex_debug;
-    extern int yydebug;
-    extern int yylex(void);
-    int yyerror(const char* s);
+    extern void lex_init(void*&);
+    extern void lex_deinit(void*&);
+    extern int yylex(union YYSTYPE*, struct YYLTYPE*, void*);
+    int yyerror(struct YYLTYPE*, void*, const char*);
+
+    void* scanner;
+    extern void yyset_debug(int, void*);
+    extern int yyget_leng(void*);
 
     SymbolTable table;
     Validator valid;
 %}
 
 /* ### Regular Definitions ### */
+%define api.pure full
+%lex-param {void* scanner}
+%parse-param {void* scanner}
+
+%locations
+%define parse.error custom
+
 %union {
 
     struct 
@@ -119,6 +127,7 @@ program: program stmt
 
 stmt: genn_stmt
       | func_stmt
+      | print_stmt
       | for_stmt
       | if_stmt
       | enum_stmt
@@ -143,42 +152,45 @@ break_stmt_list: stmt_list BREAK ';'
 
  /*/////////////////// third degree /////////////////////////////*/
 
-genn_stmt:  type IDENTIFIER ';' {  table.addSymbolInTable(new Symbol($2.value,$1.value)); }
+genn_stmt:  type IDENTIFIER ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); printf("ID @ %d:%d\n", @2.first_line, @2.first_column); }
            | type IDENTIFIER EQU func_call ';'
            | IDENTIFIER EQU func_call ';'
-           | CONSTANT type IDENTIFIER EQU rvalue ';' {
-                                                            Symbol* sy= new Symbol($3.value, $2.value);
-                                                            sy->setIsInitialised(1); sy->setIsConstant(1);
-                                                            bool checker = valid.checkSyntax(sy->getVarType(),$5.value); 
+           | CONSTANT type IDENTIFIER EQU rvalue ';'    {
+                                                            Symbol* sym= new Symbol($3.value, $2.value);
+                                                            sym->setIsInitialised(1); sym->setIsConstant(1);
+                                                            bool checker = valid.checkSyntax(sym->getVarType(),$5.value); 
                                                             if (checker) {
-                                                                table.addSymbolInTable(sy);
-                                                                table.modifySymbolInTable(sy,$5.value);
+                                                                table.addSymbolInTable(sym);
+                                                                table.modifySymbolInTable(sym,$5.value);
                                                                 }
                                                             else {
                                                                 printf("error mismatching \n");
                                                                 }
+                                                            printf("ID @ %d:%d\n", @3.first_line, @3.first_column);
                                                         }
            | IDENTIFIER EQU expr ';'                    {
-                                                        Symbol* sy = table.getSymbolObjectbyName($1.value); 
-                                                        bool checker = valid.checkSyntax(sy->getVarType(),$3.value);
-                                                        if(checker) {
-                                                            table.setSymbolByNameInTable($1.value, $3.value);
-                                                            }
-                                                        else {
-                                                            printf("error mismatching\n");
-                                                            }
+                                                            Symbol* sym = table.getSymbolObjectbyName($1.value); 
+                                                            bool checker = valid.checkSyntax(sym->getVarType(),$3.value);
+                                                            if(checker) {
+                                                                table.setSymbolByNameInTable($1.value, $3.value);
+                                                                }
+                                                            else {
+                                                                printf("error mismatching\n");
+                                                                }
+                                                            printf("ID @ %d:%d\n", @1.first_line, @1.first_column);
                                                         }
            | type IDENTIFIER EQU expr ';'               { 
-                                                        Symbol* sy = new Symbol($2.value,$1.value);
-                                                        sy->setIsInitialised(1); 
-                                                        bool checker = valid.checkSyntax(sy->getVarType(),$4.value); 
+                                                            Symbol* sym = new Symbol($2.value,$1.value);
+                                                            sym->setIsInitialised(1); 
+                                                            bool checker = valid.checkSyntax(sym->getVarType(),$4.value); 
                                                         if (checker) {
-                                                            table.addSymbolInTable(sy); 
-                                                            table.setSymbolByNameInTable($2.value, $4.value);
-                                                            } 
-                                                        else {
-                                                            printf("error mismatching \n");
-                                                            }
+                                                                table.addSymbolInTable(sym); 
+                                                                table.setSymbolByNameInTable($2.value, $4.value);
+                                                                } 
+                                                            else {
+                                                                printf("error mismatching \n");
+                                                                }
+                                                            printf("ID @ %d:%d\n", @2.first_line, @2.first_column);
                                                         }
            | expr ';'
            ;
@@ -188,6 +200,11 @@ func_stmt: func_proto
 	       | func_define
            | func_call
            ;
+
+
+print_stmt: PRINT '(' expr ')' ';'
+            ;
+
 
 for_stmt: for_proto
 	      | for_define
@@ -279,7 +296,7 @@ type: TYPE_INT { $$.type = "TYPE"; $$.value = "int"; }
 
 parameters: type IDENTIFIER
 	  | type IDENTIFIER ',' parameters
-      |%empty
+      | %empty
       ;
 
 rvalue: INTEGER { $$.type = "int"; $$.value = $1.value; }
@@ -295,11 +312,11 @@ enum_list: IDENTIFIER
            | IDENTIFIER ',' enum_list
            ;
 
-case_list:  case_list CASE rvalue ':' stmt_list BREAK ';' 
-            | CASE rvalue ':' stmt_list BREAK ';' 
+case_list:  case_list CASE rvalue ':' break_stmt_list 
+            | CASE rvalue ':' break_stmt_list   
             ;
 
-case_default: DEFAULT ':' stmt_list BREAK ';'
+case_default: DEFAULT ':' break_stmt_list 
             ;
             
 expr_list: expr
@@ -308,23 +325,23 @@ expr_list: expr
 
 expr: rvalue { $$ = $1; }
      | IDENTIFIER { $$.type = $1.type/*ELMAFROUD HENA NEGIB TYPE EL SYMBOL*/; $$.value = table.getSymbolByNameInTable($1.value); }
-     | expr PLUS expr {}
-     | expr MINUS expr
-     | expr MULT expr
-     | expr DIV expr
-     | expr POWER expr
-     | expr MODULE expr
-     | expr EQU_EQU expr
-     | expr NOT_EQU expr 
-     | expr MORE_OR_EQU expr
-     | expr LESS_OR_EQU expr
-     | expr MORE expr
-     | expr LESS expr
-     | expr AND expr
-     | expr OR expr
-     | expr INC 
-     | expr DEC
-     | NOT expr
+     | expr PLUS expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr MINUS expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr MULT expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr DIV expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr POWER expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr MODULE expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr EQU_EQU expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr NOT_EQU expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr MORE_OR_EQU expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr LESS_OR_EQU expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr MORE expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr LESS expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr AND expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr OR expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr INC  { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr DEC { $$.type = "TEMP";$$.value = "TEMP"; }
+     | NOT expr { $$.type = "TEMP";$$.value = "TEMP"; }
      ;
 
 %%
@@ -332,31 +349,59 @@ expr: rvalue { $$ = $1; }
 /* ############ Auxiliary Functions ############ */
 
 int main(int argc, char **argv) { 
+    lex_init(scanner);
+
     yydebug = ENABLE_YACC_DEBUG;
-    yy_flex_debug = ENABLE_LEX_DEBUG;
+    yyset_debug(ENABLE_LEX_DEBUG, scanner);
 
-    lex_init();
-    yyparse();
-    lex_deinit();
+    yyparse(scanner);
 
+    lex_deinit(scanner);
+    
     table.printSymbolTable(); 
 
     return 0;
 }
 
-int yyerror(char const *s)
+int yyerror(struct YYLTYPE* yylloc, void* scanner, const char *s)
 {
     return fprintf(stderr, "%s\n", s);
 }
 
+/*CODE COPIED FROM BISON DOCUMENTATION, JUST FOR TESTING, CAN CHANGE LATER*/
+static int yyreport_syntax_error(const yypcontext_t *ctx, void* scanner)
+{
+    int res = 0;
+    YYLOCATION_PRINT(stderr, yypcontext_location(ctx));
+    fprintf(stderr, ": syntax error");
 
-//Symbol* sy = table.getSymbolObjectByName($$.value); table.modifySymbolInTable(sy,table.getSymbolByNameInTable($1.value));
+    // Report the tokens expected at this point.
+    {
+        yysymbol_kind_t expected[5];
+        int n = yypcontext_expected_tokens(ctx, expected, 5);
+        if (n < 0)
+        {
+          // Forward errors to yyparse.
+          res = n;
+        }
+        else
+        {
+          for (int i = 0; i < n; ++i)
+          {
+              fprintf(stderr, "%s %s", i == 0 ? ": expected" : " or", yysymbol_name(expected[i]));
+          }  
+        }     
+    }
 
-/* 
-     std::string val = table.getSymbolByNameInTable($1.value);
-      char* buffer = new char[val.length() + 1]; 
-      strcpy(buffer, val.c_str()); 
-      printf(buffer); 
-      $$.value = (char*) malloc(val.length() + 1);
-      strcpy($$.value, val.c_str());
-      $$.value[val.length()] = '\0'; */
+    // Report the unexpected token.
+    {
+        yysymbol_kind_t lookahead = yypcontext_token(ctx);
+        if (lookahead != YYSYMBOL_YYEMPTY)
+        {
+            fprintf(stderr, " before %s, len = %d", yysymbol_name(lookahead), yyget_leng(scanner));
+        }
+    }
+
+    fprintf (stderr, "\n");
+    return res;
+}
