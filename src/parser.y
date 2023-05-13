@@ -148,7 +148,7 @@ genn_stmt:  type IDENTIFIER ';' {  table.addSymbolInTable(new Symbol($2.value,$1
            | IDENTIFIER EQU func_call ';'
            | CONSTANT type IDENTIFIER EQU rvalue ';' {Symbol* sy= new Symbol($3.value, $2.value); sy->setIsConstant(1); table.addSymbolInTable(sy); table.modifySymbolInTable(sy,$5.value);}
            | IDENTIFIER EQU expr ';' { table.setSymbolByNameInTable($1.value, $3.value); }
-           | type IDENTIFIER EQU expr ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); table.setSymbolByNameInTable($2.value, $4.value);  }
+           | type IDENTIFIER EQU expr ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); table.setSymbolByNameInTable($2.value, $4.value); }
            | expr ';'
            ;
 
@@ -275,8 +275,8 @@ expr_list: expr
          | expr_list ',' expr
          ;
 
-expr: rvalue { $$ = $1; }
-     | IDENTIFIER {$$.value=table.getSymbolByNameInTable($1.value); }
+expr: rvalue
+     | IDENTIFIER {table.setSymbolByNameInTable($$.value, table.getSymbolByNameInTable($1.value));}
      | expr PLUS expr 
      | expr MINUS expr
      | expr MULT expr
@@ -317,3 +317,6 @@ int yyerror(char const *s)
 {
     return fprintf(stderr, "%s\n", s);
 }
+
+
+//Symbol* sy = table.getSymbolObjectByName($$.value); table.modifySymbolInTable(sy,table.getSymbolByNameInTable($1.value));
