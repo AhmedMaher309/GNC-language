@@ -4,16 +4,16 @@
 #include "symbol.h"
 using namespace std;
 
-class SymbolTable{
+class SymbolTable
+{
 private:
-    unordered_map<string, Symbol*> symbolTable;
-    
+    unordered_map<string, Symbol *> symbolTable;
+
 public:
     void addSymbolInTable(Symbol *symbol);
     void modifySymbolInTable(Symbol *symbol, string value);
     void setSymbolByNameInTable(string symbolname, string value);
-    string getSymbolByNameInTable(string symbolname);
+    const char *getSymbolByNameInTable(string symbolname);
     void removeSymbolFromTable(Symbol *symbol);
     void printSymbolTable();
-    
 };

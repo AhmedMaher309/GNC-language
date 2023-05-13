@@ -1,10 +1,10 @@
 int x;
-int y = 5;
+const int w = 7;
 x = 8;
+int y = x;
 char c = 'g';
 string str = "Youssef";
 bool cond = true;
 float h = 12.34;
-y = 15;
-x = "youssef";
+x=4;
 

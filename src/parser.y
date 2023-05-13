@@ -13,6 +13,7 @@
     #include <stdlib.h>
     #include <string.h>
     #include "symboltable.h"
+    #include "validator.h"
     extern void lex_init(void);
     extern void lex_deinit(void);
     extern int yyleng;
@@ -22,6 +23,7 @@
     int yyerror(const char* s);
 
     SymbolTable table;
+    Validator valid;
 %}
 
 /* ### Regular Definitions ### */
@@ -141,12 +143,12 @@ break_stmt_list: stmt_list BREAK ';'
 
  /*/////////////////// third degree /////////////////////////////*/
 
-genn_stmt:  type IDENTIFIER ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); }
+genn_stmt:  type IDENTIFIER ';' {  table.addSymbolInTable(new Symbol($2.value,$1.value)); }
            | type IDENTIFIER EQU func_call ';'
            | IDENTIFIER EQU func_call ';'
-           | CONSTANT type IDENTIFIER EQU rvalue ';'
+           | CONSTANT type IDENTIFIER EQU rvalue ';' {Symbol* sy= new Symbol($3.value, $2.value); sy->setIsConstant(1); table.addSymbolInTable(sy); table.modifySymbolInTable(sy,$5.value);}
            | IDENTIFIER EQU expr ';' { table.setSymbolByNameInTable($1.value, $3.value); }
-           | type IDENTIFIER EQU expr ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); table.setSymbolByNameInTable($2.value, $4.value); }
+           | type IDENTIFIER EQU expr ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); table.setSymbolByNameInTable($2.value, $4.value);  }
            | expr ';'
            ;
 
@@ -274,8 +276,8 @@ expr_list: expr
          ;
 
 expr: rvalue { $$ = $1; }
-     | IDENTIFIER
-     | expr PLUS expr
+     | IDENTIFIER {$$.value=table.getSymbolByNameInTable($1.value); }
+     | expr PLUS expr 
      | expr MINUS expr
      | expr MULT expr
      | expr DIV expr
