@@ -35,81 +35,83 @@ CONSTANT    "const"
     /* ############ Rules ############ */
 
     /* Variable tokens section */
-{INTEGER}                                               { yylval->ivalue.value = strdup(yytext); return INTEGER; }
-{FLOAT}                                                 { yylval->fvalue.value = strdup(yytext); return FLOAT; }
-{BOOL}                                                  { if (strcmp(yytext, "true") == 0) {yylval->bvalue.value = "1";} else {yylval->bvalue.value = "0";} return BOOL; }
-{CHAR}                                                  { yylval->cvalue.value = strdup(yytext); return CHAR; }
-{STRING}                                                { yylval->svalue.value = strdup(yytext); return STRING; }
+{INTEGER}                                               { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; yylval->ivalue.value = strdup(yytext); return INTEGER; }
+{FLOAT}                                                 { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; yylval->fvalue.value = strdup(yytext); return FLOAT; }
+{BOOL}                                                  { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; if (strcmp(yytext, "true") == 0) {yylval->bvalue.value = "1";} else {yylval->bvalue.value = "0";} return BOOL; }
+{CHAR}                                                  { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; yylval->cvalue.value = strdup(yytext); return CHAR; }
+{STRING}                                                { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; yylval->svalue.value = strdup(yytext); return STRING; }
 
     /* Data type tokens */
-{TYPE_INT}                                              { return TYPE_INT; }
-{TYPE_FLOAT}                                            { return TYPE_FLOAT; }
-{TYPE_CHAR}                                             { return TYPE_CHAR; }
-{TYPE_BOOL}                                             { return TYPE_BOOL; }
-{TYPE_STRING}                                           { return TYPE_STRING; }
-{TYPE_VOID}                                             { return TYPE_VOID; }
-{CONSTANT}                                              { return CONSTANT; }
+{TYPE_INT}                                              { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return TYPE_INT; }
+{TYPE_FLOAT}                                            { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return TYPE_FLOAT; }
+{TYPE_CHAR}                                             { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return TYPE_CHAR; }
+{TYPE_BOOL}                                             { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return TYPE_BOOL; }
+{TYPE_STRING}                                           { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return TYPE_STRING; }
+{TYPE_VOID}                                             { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return TYPE_VOID; }
+{CONSTANT}                                              { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return CONSTANT; }
 
-"enum"                                                    { return ENUM; }
+"enum"                                                    { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return ENUM; }
     /* Loops and breaks */
-"while"                                                   { return WHILE; }
-"for"                                                     { return FOR; }
-"break"                                                   { return BREAK; }
+"while"                                                   { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return WHILE; }
+"for"                                                     { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return FOR; }
+"break"                                                   { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return BREAK; }
  
     /* if, else, elseif, switch cases */
-"if"                                                      { return IF; }
-"else"                                                    { return ELSE; }
-"switch"                                                  { return SWITCH; }
-"case"                                                    { return CASE; }
-"default"                                                 { return DEFAULT; }
-"return"                                                  { return RETURN; }
+"if"                                                      { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return IF; }
+"else"                                                    { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return ELSE; }
+"switch"                                                  { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return SWITCH; }
+"case"                                                    { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return CASE; }
+"default"                                                 { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return DEFAULT; }
+"return"                                                  { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return RETURN; }
 
 
      /* printing */
-"print"                                                   { return PRINT; }
+"print"                                                   { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return PRINT; }
 
     /* mathematical operators */
-"+"                                                     { return PLUS; }
-"-"                                                     { return MINUS; }
-"*"                                                     { return MULT; }
-"/"                                                     { return DIV; }
-"%"                                                     { return MODULE; }
-"^"                                                     { return POWER; }
-"="                                                     { return EQU; }
+"+"                                                     { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return PLUS; }
+"-"                                                     { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return MINUS; }
+"*"                                                     { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return MULT; }
+"/"                                                     { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return DIV; }
+"%"                                                     { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return MODULE; }
+"^"                                                     { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return POWER; }
+"="                                                     { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return EQU; }
 
     /* comparison operators */
-">"                                                     { return MORE; }
-"<"                                                     { return LESS; }
-"=="                                                    { return EQU_EQU; }
-">="                                                    { return MORE_OR_EQU; }
-"<="                                                    { return LESS_OR_EQU; }
+">"                                                     { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return MORE; }
+"<"                                                     { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return LESS; }
+"=="                                                    { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return EQU_EQU; }
+">="                                                    { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return MORE_OR_EQU; }
+"<="                                                    { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return LESS_OR_EQU; }
 
     /* others */ /* TODO: include these operators*/
-"!="                                                    { return NOT_EQU; }
-"++"                                                    { return INC; }
-"--"                                                    { return DEC; }
+"!="                                                    { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return NOT_EQU; }
+"++"                                                    { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return INC; }
+"--"                                                    { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return DEC; }
 
     /* logical operators */
-"&&"                                                    { return AND; }
-"||"                                                    { return OR; }
-"!"                                                     { return NOT; }
+"&&"                                                    { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return AND; }
+"||"                                                    { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return OR; }
+"!"                                                     { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return NOT; }
 
     /* scopes and special chars*/
-[();{}:,]                                               { return *yytext; }
+[();{}:,]                                               { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return *yytext; }
 
     /* repeat until */
-"repeat"                                                { return REPEAT; }
-"until"                                                 { return UNTIL; }
+"repeat"                                                { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return REPEAT; }
+"until"                                                 { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return UNTIL; }
 
     /* functions keywords */
 
     /* comments */
-"/*".*"*/"                                              { return COMMENT; }
+"/*".*"*/"                                              { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return COMMENT; }
 
-{IDENTIFIER}                                            { yylval->gvalue.type = "ID"; yylval->gvalue.value = strdup(yytext); fprintf(yyout, "Identifier Token: %s\n", yytext); return IDENTIFIER;}
+{IDENTIFIER}                                            { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; yylval->gvalue.type = "ID"; yylval->gvalue.value = strdup(yytext); fprintf(yyout, "Identifier Token: %s\n", yytext); return IDENTIFIER;}
  
-[ \t\r\n]                                               { /* ignore whitespace */; }
-.                                                       { fprintf(yyout, "invalid character\n"); }
+[ \t]                                                   { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; /* ignore whitespace */; }
+[\r\n]                                                  { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column = 1; yylloc->last_line += 1; /* ignore newlines */; }
+
+.                                                       { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; fprintf(yyout, "invalid character\n"); }
 
 %%
 /* ############ Auxiliary Functions ############ */

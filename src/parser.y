@@ -149,12 +149,12 @@ break_stmt_list: stmt_list BREAK ';'
 
  /*/////////////////// third degree /////////////////////////////*/
 
-genn_stmt:  type IDENTIFIER ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); }
+genn_stmt:  type IDENTIFIER ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); printf("ID @ %d:%d\n", @2.first_line, @2.first_column); }
            | type IDENTIFIER EQU func_call ';'
            | IDENTIFIER EQU func_call ';'
            | CONSTANT type IDENTIFIER EQU rvalue ';'
-           | IDENTIFIER EQU expr ';' { table.setSymbolByNameInTable($1.value, $3.value); }
-           | type IDENTIFIER EQU expr ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); table.setSymbolByNameInTable($2.value, $4.value); }
+           | IDENTIFIER EQU expr ';' { table.setSymbolByNameInTable($1.value, $3.value); printf("ID @ %d:%d\n", @1.first_line, @1.first_column); }
+           | type IDENTIFIER EQU expr ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); table.setSymbolByNameInTable($2.value, $4.value); printf("ID @ %d:%d\n", @2.first_line, @2.first_column); }
            | expr ';'
            ;
 
