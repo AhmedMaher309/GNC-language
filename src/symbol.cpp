@@ -26,10 +26,6 @@ void Symbol::setValue(std::string value)
     this->value = value;
 }
 
-void Symbol::setIsDeclared(bool isDeclared)
-{
-    this->isDeclared = isDeclared;
-}
 void Symbol::setIsConstant(bool isConstant)
 {
     this->isConstant = isConstant;
@@ -54,10 +50,6 @@ std::string Symbol::getValue()
     return this->value;
 }
 
-bool Symbol::checkDeclared()
-{
-    return this->isDeclared;
-}
 bool Symbol::checkConstant()
 {
     return this->isConstant;
