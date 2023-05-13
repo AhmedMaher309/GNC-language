@@ -252,7 +252,7 @@ parameters: type IDENTIFIER
 rvalue: INTEGER { $$.type = "int"; $$.value = $1.value; }
         | FLOAT { $$.type = "float"; $$.value = $1.value; }
         | CHAR { $$.type = "char"; $$.value = $1.value; }
-        | BOOL { $$.type ="bool"; $$.value = $1.value; }
+        | BOOL { $$.type = "bool"; $$.value = $1.value; }
         | STRING { $$.type = "string"; $$.value = $1.value; }
         ;
 
@@ -274,7 +274,7 @@ expr_list: expr
          ;
 
 expr: rvalue { $$ = $1; }
-     | IDENTIFIER
+     | IDENTIFIER { $$.type = $1.type/*ELMAFROUD HENA NEGIB TYPE EL SYMBOL*/; $$.value = table.getSymbolByNameInTable($1.value); }
      | expr PLUS expr
      | expr MINUS expr
      | expr MULT expr

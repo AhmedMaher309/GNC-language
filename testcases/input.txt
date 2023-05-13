@@ -1,3 +1,6 @@
+int xx = 666;
+int yy = xx;
+
 int x;
 int y = 5;
 x = 8;
@@ -7,4 +10,6 @@ bool cond = true;
 float h = 12.34;
 y = 15;
 x = "youssef";
+
+
 
