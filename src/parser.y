@@ -13,6 +13,7 @@
     #include <stdlib.h>
     #include <string.h>
     #include "symboltable.h"
+    #include "validator.h"
     extern void lex_init(void*&);
     extern void lex_deinit(void*&);
     extern int yylex(union YYSTYPE*, struct YYLTYPE*, void*);
@@ -23,6 +24,7 @@
     extern int yyget_leng(void*);
 
     SymbolTable table;
+    Validator valid;
 %}
 
 /* ### Regular Definitions ### */
@@ -152,7 +154,7 @@ break_stmt_list: stmt_list BREAK ';'
 genn_stmt:  type IDENTIFIER ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); printf("ID @ %d:%d\n", @2.first_line, @2.first_column); }
            | type IDENTIFIER EQU func_call ';'
            | IDENTIFIER EQU func_call ';'
-           | CONSTANT type IDENTIFIER EQU rvalue ';'
+           | CONSTANT type IDENTIFIER EQU rvalue ';' { Symbol* sym = new Symbol($3.value, $2.value); sym->setIsConstant(1); table.addSymbolInTable(sy); table.modifySymbolInTable(sym,$5.value); printf("ID @ %d:%d\n", @3.first_line, @3.first_column); }
            | IDENTIFIER EQU expr ';' { table.setSymbolByNameInTable($1.value, $3.value); printf("ID @ %d:%d\n", @1.first_line, @1.first_column); }
            | type IDENTIFIER EQU expr ';' { table.addSymbolInTable(new Symbol($2.value,$1.value)); table.setSymbolByNameInTable($2.value, $4.value); printf("ID @ %d:%d\n", @2.first_line, @2.first_column); }
            | expr ';'

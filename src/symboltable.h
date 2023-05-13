@@ -3,7 +3,8 @@
 #include <string>
 #include "symbol.h"
 
-class SymbolTable{
+class SymbolTable
+{
 private:
     std::unordered_map<std::string, Symbol*> symbolTable;
     
@@ -14,5 +15,4 @@ public:
     const char* getSymbolByNameInTable(std::string symbolname);
     void removeSymbolFromTable(Symbol *symbol);
     void printSymbolTable();
-    
 };
