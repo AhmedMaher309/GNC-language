@@ -13,18 +13,26 @@
     #include <stdlib.h>
     #include <string.h>
     #include "symboltable.h"
-    extern void lex_init(void);
-    extern void lex_deinit(void);
-    extern int yyleng;
-    extern int yy_flex_debug;
-    extern int yydebug;
-    extern int yylex(void);
-    int yyerror(const char* s);
+    extern void lex_init(void*&);
+    extern void lex_deinit(void*&);
+    extern int yylex(union YYSTYPE*, struct YYLTYPE*, void*);
+    int yyerror(struct YYLTYPE*, void*, const char*);
+
+    void* scanner;
+    extern void yyset_debug(int, void*);
+    extern int yyget_leng(void*);
 
     SymbolTable table;
 %}
 
 /* ### Regular Definitions ### */
+%define api.pure full
+%lex-param {void* scanner}
+%parse-param {void* scanner}
+
+%locations
+%define parse.error custom
+
 %union {
 
     struct 
@@ -275,23 +283,23 @@ expr_list: expr
 
 expr: rvalue { $$ = $1; }
      | IDENTIFIER { $$.type = $1.type/*ELMAFROUD HENA NEGIB TYPE EL SYMBOL*/; $$.value = table.getSymbolByNameInTable($1.value); }
-     | expr PLUS expr
-     | expr MINUS expr
-     | expr MULT expr
-     | expr DIV expr
-     | expr POWER expr
-     | expr MODULE expr
-     | expr EQU_EQU expr
-     | expr NOT_EQU expr 
-     | expr MORE_OR_EQU expr
-     | expr LESS_OR_EQU expr
-     | expr MORE expr
-     | expr LESS expr
-     | expr AND expr
-     | expr OR expr
-     | expr INC 
-     | expr DEC
-     | NOT expr
+     | expr PLUS expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr MINUS expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr MULT expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr DIV expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr POWER expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr MODULE expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr EQU_EQU expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr NOT_EQU expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr MORE_OR_EQU expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr LESS_OR_EQU expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr MORE expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr LESS expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr AND expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr OR expr { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr INC  { $$.type = "TEMP";$$.value = "TEMP"; }
+     | expr DEC { $$.type = "TEMP";$$.value = "TEMP"; }
+     | NOT expr { $$.type = "TEMP";$$.value = "TEMP"; }
      ;
 
 %%
@@ -299,19 +307,59 @@ expr: rvalue { $$ = $1; }
 /* ############ Auxiliary Functions ############ */
 
 int main(int argc, char **argv) { 
+    lex_init(scanner);
+
     yydebug = ENABLE_YACC_DEBUG;
-    yy_flex_debug = ENABLE_LEX_DEBUG;
+    yyset_debug(ENABLE_LEX_DEBUG, scanner);
 
-    lex_init();
-    yyparse();
-    lex_deinit();
+    yyparse(scanner);
 
+    lex_deinit(scanner);
+    
     table.printSymbolTable(); 
 
     return 0;
 }
 
-int yyerror(char const *s)
+int yyerror(struct YYLTYPE* yylloc, void* scanner, const char *s)
 {
     return fprintf(stderr, "%s\n", s);
+}
+
+/*CODE COPIED FROM BISON DOCUMENTATION, JUST FOR TESTING, CAN CHANGE LATER*/
+static int yyreport_syntax_error(const yypcontext_t *ctx, void* scanner)
+{
+    int res = 0;
+    YYLOCATION_PRINT(stderr, yypcontext_location(ctx));
+    fprintf(stderr, ": syntax error");
+
+    // Report the tokens expected at this point.
+    {
+        yysymbol_kind_t expected[5];
+        int n = yypcontext_expected_tokens(ctx, expected, 5);
+        if (n < 0)
+        {
+          // Forward errors to yyparse.
+          res = n;
+        }
+        else
+        {
+          for (int i = 0; i < n; ++i)
+          {
+              fprintf(stderr, "%s %s", i == 0 ? ": expected" : " or", yysymbol_name(expected[i]));
+          }  
+        }     
+    }
+
+    // Report the unexpected token.
+    {
+        yysymbol_kind_t lookahead = yypcontext_token(ctx);
+        if (lookahead != YYSYMBOL_YYEMPTY)
+        {
+            fprintf(stderr, " before %s, len = %d", yysymbol_name(lookahead), yyget_leng(scanner));
+        }
+    }
+
+    fprintf (stderr, "\n");
+    return res;
 }

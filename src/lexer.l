@@ -7,12 +7,15 @@
 #include "y.tab.h"
 extern FILE* io_readfile();
 extern FILE* io_writefile();
-extern int io_closefile(FILE* file);
-extern YYSTYPE yylval;
+extern int io_closefile(FILE*);
 %}
 
 /* ### Regular Definitions ### */
 %option noyywrap
+%option reentrant
+%option bison-bridge
+%option bison-locations
+%option yylineno
 
 TYPE_INT    "int"
 TYPE_FLOAT  "float"
@@ -32,11 +35,11 @@ CONSTANT    "const"
     /* ############ Rules ############ */
 
     /* Variable tokens section */
-{INTEGER}                                               { yylval.ivalue.value = strdup(yytext); return INTEGER; }
-{FLOAT}                                                 { yylval.fvalue.value = strdup(yytext); return FLOAT; }
-{BOOL}                                                  { if (strcmp(yytext, "true") == 0) {yylval.bvalue.value = "1";} else {yylval.bvalue.value = "0";} return BOOL; }
-{CHAR}                                                  { yylval.cvalue.value = strdup(yytext); return CHAR; }
-{STRING}                                                { yylval.svalue.value = strdup(yytext); return STRING; }
+{INTEGER}                                               { yylval->ivalue.value = strdup(yytext); return INTEGER; }
+{FLOAT}                                                 { yylval->fvalue.value = strdup(yytext); return FLOAT; }
+{BOOL}                                                  { if (strcmp(yytext, "true") == 0) {yylval->bvalue.value = "1";} else {yylval->bvalue.value = "0";} return BOOL; }
+{CHAR}                                                  { yylval->cvalue.value = strdup(yytext); return CHAR; }
+{STRING}                                                { yylval->svalue.value = strdup(yytext); return STRING; }
 
     /* Data type tokens */
 {TYPE_INT}                                              { return TYPE_INT; }
@@ -103,7 +106,7 @@ CONSTANT    "const"
     /* comments */
 "/*".*"*/"                                              { return COMMENT; }
 
-{IDENTIFIER}                                            { yylval.gvalue.type = "ID"; yylval.gvalue.value = strdup(yytext); fprintf(yyout, "Identifier Token: %s\n", yytext); return IDENTIFIER;}
+{IDENTIFIER}                                            { yylval->gvalue.type = "ID"; yylval->gvalue.value = strdup(yytext); fprintf(yyout, "Identifier Token: %s\n", yytext); return IDENTIFIER;}
  
 [ \t\r\n]                                               { /* ignore whitespace */; }
 .                                                       { fprintf(yyout, "invalid character\n"); }
@@ -111,8 +114,10 @@ CONSTANT    "const"
 %%
 /* ############ Auxiliary Functions ############ */
 
-void lex_init(void)
+void lex_init(void*& scanner)
 {
+    yylex_init (&scanner);
+
     FILE* file;
 
     fprintf(stdout, "Getting input file. Leave empty for default input (stdin)\n");
@@ -120,13 +125,13 @@ void lex_init(void)
     if (file != NULL)
     {
         fprintf(stdout, "Successfully opened input file\n");
-        yyin = file;
+        yyset_in(file, scanner);
     }
     else
     {
         fprintf(stderr, "Error opening input file\n");
         fprintf(stdout, "Defaulting input to stdin\n");
-        yyin = stdin;
+        yyset_in(stdin, scanner);;
     }
 
     fprintf(stdout, "Getting output file. Leave empty for default output (stdout)\n");
@@ -134,21 +139,21 @@ void lex_init(void)
     if (file != NULL)
     {
         fprintf(stdout, "Successfully opened output file\n");
-        yyout = file;
+        yyset_out(file, scanner);
     }
     else
     {
         fprintf(stderr, "Error opening output file\n");
         fprintf(stdout, "Defaulting output to stdout\n");
-        yyout = stdout;
+        yyset_out(stdout, scanner);
     }    
 }
 
-void lex_deinit(void)
+void lex_deinit(void*& scanner)
 {
-    if (yyin != stdin)
+    if (yyget_in(scanner) != stdin)
     {
-        if (io_closefile(yyin) == 0)
+        if (io_closefile(yyget_in(scanner)) == 0)
         {
             fprintf(stdout, "Successfully closed input file\n");
         }
@@ -158,9 +163,9 @@ void lex_deinit(void)
         }
     }
 
-    if (yyout != stdout)
+    if (yyget_out(scanner) != stdout)
     {
-        if (io_closefile(yyout) == 0)
+        if (io_closefile(yyget_out(scanner)) == 0)
         {
             fprintf(stdout, "Successfully closed output file\n");
         }
@@ -169,4 +174,6 @@ void lex_deinit(void)
             fprintf(stderr, "Error closing output file\n");
         }
     }
+
+    yylex_destroy (scanner);
 }
