@@ -12,6 +12,11 @@ void SymbolTable::addSymbolInTable(Symbol *symbol)
     symbolTable[symbol->getName()] = symbol;
 }
 
+void SymbolTable::addSymbolsInTable(std::unordered_map<std::string, Symbol *> *symbolTable)
+{
+    this->symbolTable = *symbolTable;
+}
+
 void SymbolTable::modifySymbolInTable(Symbol *symbol, std::string value)
 {
     if (symbolTable.find(symbol->getName()) != symbolTable.end())
@@ -64,7 +69,7 @@ void SymbolTable::printSymbolTable()
     cout << left << setw(20) << "variable name" << setw(20) << "variable type" << setw(20) << "variable value" << setw(15) << "is constant" << setw(20) << "is initialised" << setw(20) << "memory location" << endl;
     for (auto x : symbolTable)
     {
-        cout << left << setw(20) << x.first << setw(20) << x.second->getVarType() << setw(20) << x.second->getValue() << setw(15) << x.second->checkConstant() << setw(20) << x.second->checkInitialisation() << setw(20) << x.second << endl;
+        cout << left << setw(20) << x.second->getName() << setw(20) << x.second->getVarType() << setw(20) << x.second->getValue() << setw(15) << x.second->checkConstant() << setw(20) << x.second->checkInitialisation() << setw(20) << x.second << endl;
     }
     cout << endl
          << endl;

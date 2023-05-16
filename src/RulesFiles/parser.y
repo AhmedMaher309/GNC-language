@@ -13,6 +13,7 @@
     #include <stdlib.h>
     #include <string.h>
     #include "../SymbolTable/scopestack.h"
+    #include "../SymbolTable/functiontable.h"
     #include "../Validator/validator.h"
     extern void lex_init(void*&);
     extern void lex_deinit(void*&);
@@ -25,6 +26,10 @@
 
     ScopeStack scope;
     SymbolTable* table = scope.getGlobals();
+
+    FunctionTable functions;
+    Function* func = NULL;
+
     Validator valid;
 %}
 
@@ -82,7 +87,8 @@
 %token <bvalue> BOOL
 %token <cvalue> CHAR
 %token <svalue> STRING
-%token <gvalue> TYPE_INT TYPE_FLOAT TYPE_CHAR TYPE_BOOL TYPE_STRING TYPE_VOID
+%token <gvalue> TYPE_INT TYPE_FLOAT TYPE_CHAR TYPE_BOOL TYPE_STRING
+%token TYPE_VOID
 %token CONSTANT
 %token ENUM
 %token WHILE FOR BREAK
@@ -142,7 +148,7 @@ stmt_list: stmt
          | stmt_list stmt
          ;
 
-func_stmt_list: stmt_list RETURN expr ';'
+func_stmt_list: stmt_list RETURN expr ';'       {/*Check func Vartype with expr type*/}
                 |  RETURN expr ';'
                 ;
 
@@ -240,17 +246,15 @@ switch_stmt:   SWITCH '(' IDENTIFIER ')' scope_begin case_list case_default scop
 
 
  /*///////////////////// forth degree /////////////////////////*/
-func_proto: type IDENTIFIER '(' parameters ')' ';'
-	        | TYPE_VOID IDENTIFIER '(' parameters ')' ';' 
-            ;
+func_proto: func_sgnt parameters ')' ';'                                                    { functions.addFunctionInTable(func); func = NULL; };
+          | ret_func_sgnt parameters ')' ';'                                                { functions.addFunctionInTable(func); func = NULL; };
+          ;
 
-
-func_define: type IDENTIFIER '(' parameters ')' scope_begin func_stmt_list scope_end
-             | TYPE_VOID IDENTIFIER '(' parameters ')' scope_begin stmt_list scope_end
-             ;
+func_define: func_sgnt parameters ')' scope_begin stmt_list scope_end                       { func->setIsDefined(1); functions.addFunctionInTable(func); func = NULL; };
+           | ret_func_sgnt parameters ')' scope_begin func_stmt_list scope_end              { func->setIsDefined(1); functions.addFunctionInTable(func); func = NULL; };
+           ;
         
-
-func_call: IDENTIFIER '(' expr_list ')' ;
+func_call: IDENTIFIER '(' expr_list ')'                                                     { /*Check function table to make sure function exists and correct parameters*/ };
 
 
 
@@ -301,8 +305,16 @@ type: TYPE_INT { $$.type = "TYPE"; $$.value = "int"; }
       | TYPE_STRING { $$.type = "TYPE"; $$.value = "string"; }
       ;
 
-parameters: type IDENTIFIER
-	  | type IDENTIFIER ',' parameters
+
+func_sgnt: TYPE_VOID IDENTIFIER '('             { func = new Function($2.value, "void"); };
+         ;
+
+ret_func_sgnt: type IDENTIFIER '('              { func = new Function($2.value, $1.value); };
+             ;
+
+
+parameters: type IDENTIFIER                 { /*Add parameters to func*/ };
+	  | type IDENTIFIER ',' parameters      { /*Add parameters to func*/ };
       | %empty
       ;
 
@@ -351,7 +363,7 @@ expr: rvalue { $$ = $1; }
      | NOT expr { $$.type = "TEMP"; $$.value = "TEMP"; }
      ;
 
-scope_begin: '{'            {table = scope.addScope();}
+scope_begin: '{'            {table = scope.addScope(); /*if(func != NULL) {table.addSymbolsInTable(FUNCTION PARAMETERS);};*/}
              ;
 
 scope_end: '}'              {table->printSymbolTable(); table = scope.removeScope();}
@@ -373,6 +385,7 @@ int main(int argc, char **argv) {
     yyparse(scanner);
 
     table->printSymbolTable();
+    functions.printFunctionTable();
 
     lex_deinit(scanner);
 

@@ -3,6 +3,8 @@ int y;
 y = x;
 string z = "compilers";
 y = z;
+void TestFunc(int x, int y); 
+int MAX(int a, int b); 
 
 if (5 > 3)
 {
@@ -34,4 +36,9 @@ void NewFunc()
         y = x;
         x = g_x;
     }
+}
+
+int MAX(int a, int b)
+{
+    return a+b;
 }

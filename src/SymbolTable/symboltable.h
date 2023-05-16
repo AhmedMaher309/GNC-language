@@ -12,6 +12,7 @@ private:
 
 public:
     void addSymbolInTable(Symbol *symbol);
+    void addSymbolsInTable(std::unordered_map<std::string, Symbol *> *symbolTable);
     void modifySymbolInTable(Symbol *symbol, std::string value);
     void setSymbolByNameInTable(std::string symbolname, std::string value);
     const char *getSymbolByNameInTable(std::string symbolname);
