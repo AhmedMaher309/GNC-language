@@ -1,7 +1,8 @@
 # GNC
 
-#### This is a simple programming language using flex and bison tools 
-#### GNC stands for "GNC's not C" (yes like GNU).
+#### This is a simple programming language using flex and bison tools, C, and C++.
+#### It's similar to C programming language but not exactly it.
+#### the name "GNC" stands for "GNC's not C" (yes like GNU).
 
 ## Getting Started
 
