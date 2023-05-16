@@ -3,7 +3,7 @@ int y;
 y = x;
 string z = "compilers";
 y = z;
-void TestFunc(int x, int y); 
+void TestFunc(int x, int y, int z, int w); 
 int MAX(int a, int b); 
 
 if (5 > 3)
@@ -36,6 +36,11 @@ void NewFunc()
         y = x;
         x = g_x;
     }
+}
+
+void strprnt(string s)
+{
+    print(s);
 }
 
 int MAX(int a, int b)

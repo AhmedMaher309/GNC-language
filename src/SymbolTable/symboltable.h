@@ -1,9 +1,8 @@
+#pragma once
 #include <iostream>
 #include <unordered_map>
 #include <string>
 #include "symbol.h"
-
-#define C_NULL 0
 
 class SymbolTable
 {

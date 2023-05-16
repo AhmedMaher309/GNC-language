@@ -37,10 +37,23 @@ void FunctionTable::removeFunctionFromTable(Function *function)
 void FunctionTable::printFunctionTable()
 {
     cout << endl;
-    cout << left << setw(20) << "function name" << setw(20) << "function type" << setw(15) << "is defined" << endl;
+    cout << left << setw(20) << "function name" << setw(20) << "function type" << setw(15) << "is defined" << "parameters" << endl;
     for (auto x : functionTable)
     {
-        cout << left << setw(20) << x.second->getName() << setw(20) << x.second->getVarType() << setw(15) << x.second->checkDefinition() << endl;
+        cout << left << setw(20) << x.second->getName() << setw(20) << x.second->getVarType() << setw(15) << x.second->checkDefinition();
+        
+        int count = x.second->getCount();
+        for(int i = 0; i < count; i++)
+        {
+            Symbol* param = x.second->getParameter(i);
+            cout << i << ": " << param->getVarType() << " " << param->getName();
+            if (i != count - 1)
+            {
+                cout << ", ";
+            }
+        }
+
+        cout << endl;
     }
     cout << endl
          << endl;

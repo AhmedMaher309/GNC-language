@@ -246,12 +246,12 @@ switch_stmt:   SWITCH '(' IDENTIFIER ')' scope_begin case_list case_default scop
 
 
  /*///////////////////// forth degree /////////////////////////*/
-func_proto: func_sgnt parameters ')' ';'                                                    { functions.addFunctionInTable(func); func = NULL; };
-          | ret_func_sgnt parameters ')' ';'                                                { functions.addFunctionInTable(func); func = NULL; };
+func_proto: func_sgnt parameters ';'                                                    { functions.addFunctionInTable(func); func = NULL; };
+          | ret_func_sgnt parameters ';'                                                { functions.addFunctionInTable(func); func = NULL; };
           ;
 
-func_define: func_sgnt parameters ')' scope_begin stmt_list scope_end                       { func->setIsDefined(1); functions.addFunctionInTable(func); func = NULL; };
-           | ret_func_sgnt parameters ')' scope_begin func_stmt_list scope_end              { func->setIsDefined(1); functions.addFunctionInTable(func); func = NULL; };
+func_define: func_sgnt parameters scope_begin stmt_list scope_end                       { func->setIsDefined(1); functions.addFunctionInTable(func); func = NULL; };
+           | ret_func_sgnt parameters scope_begin func_stmt_list scope_end              { func->setIsDefined(1); functions.addFunctionInTable(func); func = NULL; };
            ;
         
 func_call: IDENTIFIER '(' expr_list ')'                                                     { /*Check function table to make sure function exists and correct parameters*/ };
@@ -313,9 +313,9 @@ ret_func_sgnt: type IDENTIFIER '('              { func = new Function($2.value, 
              ;
 
 
-parameters: type IDENTIFIER                 { /*Add parameters to func*/ };
-	  | type IDENTIFIER ',' parameters      { /*Add parameters to func*/ };
-      | %empty
+parameters: type IDENTIFIER ')'             { func->addParameter(new Symbol($2.value, $1.value)); };
+	  | type IDENTIFIER ',' parameters      { func->addParameter(new Symbol($2.value, $1.value)); };
+      | ')'
       ;
 
 rvalue: INTEGER { $$.type = "int"; $$.value = $1.value; }
@@ -339,7 +339,7 @@ case_default: DEFAULT case_scope_begin break_stmt_list                  {table->
             ;
             
 expr_list: expr
-         | expr_list ',' expr
+         | expr ',' expr_list
          ;
 
 expr: rvalue { $$ = $1; }
@@ -363,14 +363,23 @@ expr: rvalue { $$ = $1; }
      | NOT expr { $$.type = "TEMP"; $$.value = "TEMP"; }
      ;
 
-scope_begin: '{'            {table = scope.addScope(); /*if(func != NULL) {table.addSymbolsInTable(FUNCTION PARAMETERS);};*/}
+scope_begin: '{'            {
+                                table = scope.addScope(); 
+                                if(func != NULL) 
+                                {
+                                    for(int i = 0; i < func->getCount(); i++)
+                                    {
+                                        table->addSymbolInTable(func->getParameter(i));
+                                    }
+                                }
+                            }
              ;
 
 scope_end: '}'              {table->printSymbolTable(); table = scope.removeScope();}
            ;
 
 case_scope_begin: ':'       {table = scope.addScope();}
-                  ;
+                ;
 
 %%
      

@@ -1,6 +1,9 @@
+#pragma once
 #include <iostream>
 #include <string>
 #include <unordered_map>
+
+#define C_NULL 0
 
 class Symbol
 {

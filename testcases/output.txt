@@ -8,6 +8,8 @@ Identifier Token: z
 Identifier Token: TestFunc
 Identifier Token: x
 Identifier Token: y
+Identifier Token: z
+Identifier Token: w
 Identifier Token: MAX
 Identifier Token: a
 Identifier Token: b
@@ -28,6 +30,9 @@ Identifier Token: y
 Identifier Token: x
 Identifier Token: x
 Identifier Token: g_x
+Identifier Token: strprnt
+Identifier Token: s
+Identifier Token: s
 Identifier Token: MAX
 Identifier Token: a
 Identifier Token: b

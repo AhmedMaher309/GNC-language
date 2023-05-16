@@ -21,6 +21,12 @@ void Function::setVarType(std::string varType)
     this->varType = varType;
 }
 
+void Function::addParameter(Symbol* symbol)
+{
+    parameters[count] = symbol;
+    ++count;
+}
+
 void Function::setIsDefined(bool isDefined)
 {
     this->isDefined = isDefined;
@@ -34,6 +40,20 @@ std::string Function::getName()
 std::string Function::getVarType()
 {
     return this->varType;
+}
+
+Symbol* Function::getParameter(int index)
+{
+    if (parameters.find(index) != parameters.end())
+    {
+        return parameters[index];
+    }
+    return C_NULL;
+}
+
+int Function::getCount()
+{
+    return count;
 }
 
 bool Function::checkDefinition()
