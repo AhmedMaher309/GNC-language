@@ -12,7 +12,7 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
-    #include "../SymbolTable/symboltable.h"
+    #include "../SymbolTable/scopestack.h"
     #include "../Validator/validator.h"
     extern void lex_init(void*&);
     extern void lex_deinit(void*&);
@@ -23,7 +23,8 @@
     extern void yyset_debug(int, void*);
     extern int yyget_leng(void*);
 
-    SymbolTable table;
+    ScopeStack scope;
+    SymbolTable* table = scope.getGlobals();
     Validator valid;
 %}
 
@@ -152,18 +153,18 @@ break_stmt_list: stmt_list BREAK ';'
 
  /*/////////////////// third degree /////////////////////////////*/
 
-genn_stmt:  type IDENTIFIER ';'                         {   table.addSymbolInTable(new Symbol($2.value,$1.value));
+genn_stmt:  type IDENTIFIER ';'                         {   table->addSymbolInTable(new Symbol($2.value,$1.value));
                                                             printf("ID @ %d:%d\n", @2.first_line, @2.first_column);
                                                         }
            | type IDENTIFIER EQU func_call ';'
            | IDENTIFIER EQU func_call ';'
            | CONSTANT type IDENTIFIER EQU rvalue ';'    {
-                                                            Symbol* sym= new Symbol($3.value, $2.value);
+                                                            Symbol* sym = new Symbol($3.value, $2.value);
                                                             sym->setIsInitialised(1); sym->setIsConstant(1);
                                                             bool checker = valid.checkSyntax(sym->getVarType(),$5.value); 
                                                             if (checker) {
-                                                                table.addSymbolInTable(sym);
-                                                                table.modifySymbolInTable(sym,$5.value);
+                                                                table->addSymbolInTable(sym);
+                                                                table->modifySymbolInTable(sym,$5.value);
                                                                 }
                                                             else {
                                                                 printf("error mismatching \n");
@@ -171,12 +172,13 @@ genn_stmt:  type IDENTIFIER ';'                         {   table.addSymbolInTab
                                                             printf("ID @ %d:%d\n", @3.first_line, @3.first_column);
                                                         }
            | IDENTIFIER EQU expr ';'                    {
-                                                            Symbol* sym = table.getSymbolObjectbyName($1.value); 
-                                                            if (sym != NULL)
+                                                            SymbolTable* firstTable = scope.getSymbolTableFromStack($1.value);
+                                                            if (firstTable != NULL)
                                                             {
+                                                                Symbol* sym = firstTable->getSymbolObjectbyName($1.value); 
                                                                 bool checker = valid.checkSyntax(sym->getVarType(),$3.value);
                                                                 if(checker) {
-                                                                    table.setSymbolByNameInTable($1.value, $3.value);
+                                                                    firstTable->setSymbolByNameInTable($1.value, $3.value);
                                                                     }
                                                                 else {
                                                                     printf("error mismatching\n");
@@ -189,8 +191,8 @@ genn_stmt:  type IDENTIFIER ';'                         {   table.addSymbolInTab
                                                             sym->setIsInitialised(1); 
                                                             bool checker = valid.checkSyntax(sym->getVarType(),$4.value); 
                                                         if (checker) {
-                                                                table.addSymbolInTable(sym); 
-                                                                table.setSymbolByNameInTable($2.value, $4.value);
+                                                                table->addSymbolInTable(sym); 
+                                                                table->setSymbolByNameInTable($2.value, $4.value);
                                                                 } 
                                                             else {
                                                                 printf("error mismatching \n");
@@ -228,12 +230,12 @@ while_stmt: while_proto
            | while_define
            ;
            
-repeat_stmt: REPEAT '{' stmt_list '}' UNTIL '(' expr ')' ';'
-                  | REPEAT '{' '}' UNTIL '(' expr ')' ';'
+repeat_stmt: REPEAT scope_begin stmt_list scope_end UNTIL '(' expr ')' ';'
+                  | REPEAT scope_begin scope_end UNTIL '(' expr ')' ';'
                   ;
                   
-switch_stmt:   SWITCH '(' IDENTIFIER ')' '{' case_list case_default '}' ';'
-                | SWITCH '(' IDENTIFIER ')' '{' case_default '}' ';'
+switch_stmt:   SWITCH '(' IDENTIFIER ')' scope_begin case_list case_default scope_end ';'
+                | SWITCH '(' IDENTIFIER ')' scope_begin case_default scope_end ';'
                 ;
 
 
@@ -243,8 +245,8 @@ func_proto: type IDENTIFIER '(' parameters ')' ';'
             ;
 
 
-func_define: type IDENTIFIER '(' parameters ')' '{' func_stmt_list '}'
-             | TYPE_VOID IDENTIFIER '(' parameters ')' '{' stmt_list '}'
+func_define: type IDENTIFIER '(' parameters ')' scope_begin func_stmt_list scope_end
+             | TYPE_VOID IDENTIFIER '(' parameters ')' scope_begin stmt_list scope_end
              ;
         
 
@@ -256,36 +258,36 @@ for_proto: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' ';'
 	       | FOR '(' expr ';' expr ';' expr ')' ';'
            ;
 
-for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' stmt_list '}' 
-	        | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' '{' break_stmt_list '}' 
-            | FOR '(' expr ';' expr ';' expr ')' '{' stmt_list '}' 
-            | FOR '(' expr ';' expr ';' expr ')' '{' break_stmt_list '}' 
+for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' scope_begin stmt_list scope_end 
+	        | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' scope_begin break_stmt_list scope_end 
+            | FOR '(' expr ';' expr ';' expr ')' scope_begin stmt_list scope_end 
+            | FOR '(' expr ';' expr ';' expr ')' scope_begin break_stmt_list scope_end 
             ;
 
 
 if_proto: IF '(' expr ')' ';' 
         ;
 
-if_define: IF '(' expr ')' '{' stmt_list '}' 
-           |  IF '(' expr ')' '{' stmt_list '}' ELSE '{' stmt_list '}'
-           |  IF '(' expr ')' '{' stmt_list '}' ELSE '{' '}'
-           |  IF '(' expr ')' '{' stmt_list '}' ELSE ';'
-	       |  IF '(' expr ')' '{' '}' 
-           |  IF '(' expr ')' '{' '}' ELSE '{'stmt_list '}'
-           |  IF '(' expr ')' '{' '}' ELSE '{' '}'
-           |  IF '(' expr ')' '{' '}' ELSE ';'
+if_define: IF '(' expr ')' scope_begin stmt_list scope_end 
+           |  IF '(' expr ')' scope_begin stmt_list scope_end ELSE scope_begin stmt_list scope_end
+           |  IF '(' expr ')' scope_begin stmt_list scope_end ELSE scope_begin scope_end
+           |  IF '(' expr ')' scope_begin stmt_list scope_end ELSE ';'
+	       |  IF '(' expr ')' scope_begin scope_end 
+           |  IF '(' expr ')' scope_begin scope_end ELSE scope_begin stmt_list scope_end
+           |  IF '(' expr ')' scope_begin scope_end ELSE scope_begin scope_end
+           |  IF '(' expr ')' scope_begin scope_end ELSE ';'
            ;
 
 
-enum_declare: ENUM IDENTIFIER '{' enum_list '}' ';' ;
+enum_declare: ENUM IDENTIFIER scope_begin enum_list scope_end ';' ;
 
 enum_define: ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER ';'
 
 while_proto: WHILE '(' expr ')' ';' ;
 
 
-while_define: WHILE '(' expr ')' '{' stmt_list '}'
-             | WHILE '(' expr ')' '{' break_stmt_list '}'
+while_define: WHILE '(' expr ')' scope_begin stmt_list scope_end
+             | WHILE '(' expr ')' scope_begin break_stmt_list scope_end
              ;
 
 
@@ -317,11 +319,11 @@ enum_list: IDENTIFIER
            | IDENTIFIER ',' enum_list
            ;
 
-case_list:  case_list CASE rvalue ':' break_stmt_list 
-            | CASE rvalue ':' break_stmt_list   
+case_list:  case_list CASE rvalue case_scope_begin break_stmt_list      {table->printSymbolTable(); table = scope.removeScope();}
+            | CASE rvalue case_scope_begin break_stmt_list              {table->printSymbolTable(); table = scope.removeScope();}
             ;
 
-case_default: DEFAULT ':' break_stmt_list 
+case_default: DEFAULT case_scope_begin break_stmt_list                  {table->printSymbolTable(); table = scope.removeScope();}
             ;
             
 expr_list: expr
@@ -329,7 +331,7 @@ expr_list: expr
          ;
 
 expr: rvalue { $$ = $1; }
-     | IDENTIFIER { $$.type = $1.type/*ELMAFROUD HENA NEGIB TYPE EL SYMBOL*/; $$.value = table.getSymbolByNameInTable($1.value); if($$.value == NULL) {$$.value = "TEMP";}; }
+     | IDENTIFIER { $$.type = $1.type/*ELMAFROUD HENA NEGIB TYPE EL SYMBOL*/; SymbolTable* firstTable = scope.getSymbolTableFromStack($1.value); if(firstTable != NULL) {$$.value = firstTable->getSymbolByNameInTable($1.value);} else {$$.value = "TEMP";}; }
      | expr PLUS expr { $$.type = "TEMP"; $$.value = "TEMP"; }
      | expr MINUS expr { $$.type = "TEMP"; $$.value = "TEMP"; }
      | expr MULT expr { $$.type = "TEMP"; $$.value = "TEMP"; }
@@ -349,6 +351,15 @@ expr: rvalue { $$ = $1; }
      | NOT expr { $$.type = "TEMP"; $$.value = "TEMP"; }
      ;
 
+scope_begin: '{'            {table = scope.addScope();}
+             ;
+
+scope_end: '}'              {table->printSymbolTable(); table = scope.removeScope();}
+           ;
+
+case_scope_begin: ':'       {table = scope.addScope();}
+                  ;
+
 %%
      
 /* ############ Auxiliary Functions ############ */
@@ -361,9 +372,9 @@ int main(int argc, char **argv) {
 
     yyparse(scanner);
 
+    table->printSymbolTable();
+
     lex_deinit(scanner);
-    
-    table.printSymbolTable(); 
 
     return 0;
 }

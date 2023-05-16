@@ -6,12 +6,12 @@ IN = testcases/input.txt
 OUT = testcases/output.txt
 
 # link rule
-build: lexer parser  src/IOHandler/iohandler.c  src/SymbolTable/symbol.cpp  src/SymbolTable/symboltable.cpp  src/Validator/validator.cpp
-	$(CC) -o compiler.out  src/RulesFiles/lex.yy.c  src/RulesFiles/y.tab.c  src/IOHandler/iohandler.c  src/SymbolTable/symbol.cpp  src/SymbolTable/symboltable.cpp  src/Validator/validator.cpp
+build: lexer parser  src/IOHandler/iohandler.c  src/SymbolTable/symbol.cpp  src/SymbolTable/symboltable.cpp  src/SymbolTable/scopestack.cpp  src/Validator/validator.cpp
+	$(CC) -o compiler.out  src/RulesFiles/lex.yy.c  src/RulesFiles/y.tab.c  src/IOHandler/iohandler.c  src/SymbolTable/symbol.cpp  src/SymbolTable/symboltable.cpp  src/SymbolTable/scopestack.cpp  src/Validator/validator.cpp
 
 # link rule
-cleanbuild: lexer_silent parser_silent  src/IOHandler/iohandler.c  src/SymbolTable/symbol.cpp  src/SymbolTable/symboltable.cpp  src/Validator/validator.cpp
-	$(CC) -o compiler.out  src/RulesFiles/lex.yy.c  src/RulesFiles/y.tab.c  src/IOHandler/iohandler.c  src/SymbolTable/symbol.cpp  src/SymbolTable/symboltable.cpp  src/Validator/validator.cpp
+cleanbuild: lexer_silent parser_silent  src/IOHandler/iohandler.c  src/SymbolTable/symbol.cpp  src/SymbolTable/symboltable.cpp  src/SymbolTable/scopestack.cpp  src/Validator/validator.cpp
+	$(CC) -o compiler.out  src/RulesFiles/lex.yy.c  src/RulesFiles/y.tab.c  src/IOHandler/iohandler.c  src/SymbolTable/symbol.cpp  src/SymbolTable/symboltable.cpp  src/SymbolTable/scopestack.cpp  src/Validator/validator.cpp
 	rm -f src/RulesFiles/y.* src/RulesFiles/lex.*
 
 # run rule

@@ -3,3 +3,35 @@ int y;
 y = x;
 string z = "compilers";
 y = z;
+
+if (5 > 3)
+{
+    int test = 666;
+    int x = test;
+}
+
+while(1)
+{
+    int yy = x;
+    if (1)
+    {
+        int x = 23;
+        string z = "new";
+        x = 99;
+    }
+    else
+    {
+        x = 1;
+    }
+}
+
+void NewFunc()
+{
+    int g_x = x;
+    x = 15;
+    while(1)
+    {
+        y = x;
+        x = g_x;
+    }
+}

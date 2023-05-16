@@ -5,8 +5,6 @@
 
 #include "symboltable.h"
 
-#define C_NULL 0
-
 using namespace std;
 
 void SymbolTable::addSymbolInTable(Symbol *symbol)

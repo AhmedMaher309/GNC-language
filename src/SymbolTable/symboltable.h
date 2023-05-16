@@ -3,6 +3,8 @@
 #include <string>
 #include "symbol.h"
 
+#define C_NULL 0
+
 class SymbolTable
 {
 private:
