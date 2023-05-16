@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
-#include "symbol.h"
+#include "../SymbolTable/symbol.h"
 
 class Function
 {

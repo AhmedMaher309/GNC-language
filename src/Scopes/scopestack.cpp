@@ -55,3 +55,16 @@ SymbolTable* ScopeStack::getSymbolTableFromStack(std::string symbolname)
 
     return C_NULL;
 }
+
+void ScopeStack::printSymbolTables()
+{
+    cout << endl << "Symbol Tables:" << endl;
+    cout << "==============" << endl;
+    globals->printSymbolTable();
+
+    for (auto scope = scopeStack.begin(); scope != scopeStack.end(); ++scope)
+    {
+        cout << "====================================================================================================" << endl;
+        (*scope)->printSymbolTable();
+    }
+}

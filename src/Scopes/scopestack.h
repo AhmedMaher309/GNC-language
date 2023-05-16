@@ -2,7 +2,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include "symboltable.h"
+#include "../SymbolTable/symboltable.h"
 
 class ScopeStack
 {
@@ -16,4 +16,5 @@ public:
     SymbolTable* removeScope();
     SymbolTable* getGlobals();
     SymbolTable* getSymbolTableFromStack(std::string symbolname);
+    void printSymbolTables();
 };

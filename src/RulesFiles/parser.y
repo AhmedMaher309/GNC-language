@@ -12,8 +12,8 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
-    #include "../SymbolTable/scopestack.h"
-    #include "../SymbolTable/functiontable.h"
+    #include "../Scopes/scopestack.h"
+    #include "../FunctionTable/functiontable.h"
     #include "../Validator/validator.h"
     extern void lex_init(void*&);
     extern void lex_deinit(void*&);
@@ -331,11 +331,11 @@ enum_list: IDENTIFIER
            | IDENTIFIER ',' enum_list
            ;
 
-case_list:  case_list CASE rvalue case_scope_begin break_stmt_list      {table->printSymbolTable(); table = scope.removeScope();}
-            | CASE rvalue case_scope_begin break_stmt_list              {table->printSymbolTable(); table = scope.removeScope();}
+case_list:  case_list CASE rvalue case_scope_begin break_stmt_list      {scope.printSymbolTables(); table = scope.removeScope();}
+            | CASE rvalue case_scope_begin break_stmt_list              {scope.printSymbolTables(); table = scope.removeScope();}
             ;
 
-case_default: DEFAULT case_scope_begin break_stmt_list                  {table->printSymbolTable(); table = scope.removeScope();}
+case_default: DEFAULT case_scope_begin break_stmt_list                  {scope.printSymbolTables(); table = scope.removeScope();}
             ;
             
 expr_list: expr
@@ -375,7 +375,7 @@ scope_begin: '{'            {
                             }
              ;
 
-scope_end: '}'              {table->printSymbolTable(); table = scope.removeScope();}
+scope_end: '}'              {scope.printSymbolTables(); table = scope.removeScope();}
            ;
 
 case_scope_begin: ':'       {table = scope.addScope();}
@@ -393,7 +393,7 @@ int main(int argc, char **argv) {
 
     yyparse(scanner);
 
-    table->printSymbolTable();
+    scope.printSymbolTables();
     functions.printFunctionTable();
 
     lex_deinit(scanner);
