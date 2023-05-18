@@ -1,22 +1,18 @@
+/*===============================*/
+/*UNUSED FILE, ONLY FOR ARCHIVING*/
+/*===============================*/
+
 #pragma once
 #include <iostream>
 #include <vector>
 #include <string>
 #include "../SymbolTable/symboltable.h"
 
-struct ScopeNode
-{
-    std::string name;
-    SymbolTable* symbolTable;
-    ScopeNode* parent;
-    std::vector<ScopeNode*> children;
-};
-
 class ScopeStack
 {
 private:
-    ScopeNode* globals;
-    ScopeNode* scopeStack;
+    SymbolTable* globals;
+    std::vector<SymbolTable*> scopeStack;
 
 public:
     ScopeStack();
@@ -24,5 +20,5 @@ public:
     SymbolTable* removeScope();
     SymbolTable* getGlobals();
     SymbolTable* getSymbolTableFromStack(std::string symbolname);
-    void printSymbolTables(ScopeNode* node = NULL, int level = 0);
+    void printSymbolTables();
 };

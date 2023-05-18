@@ -13,6 +13,7 @@ Identifier Token: w
 Identifier Token: MAX
 Identifier Token: a
 Identifier Token: b
+Identifier Token: main
 Identifier Token: test
 Identifier Token: x
 Identifier Token: test

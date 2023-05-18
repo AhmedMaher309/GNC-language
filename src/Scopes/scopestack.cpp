@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <iomanip>
 
 #include "scopestack.h"
 
@@ -8,63 +9,67 @@ using namespace std;
 
 ScopeStack::ScopeStack()
 {
-    this->globals = new SymbolTable();
+    this->globals = new ScopeNode();
+    globals->symbolTable = new SymbolTable();
+    globals->parent = NULL;
+    globals->name = "L0";
+    scopeStack = globals;
 }
 
 SymbolTable* ScopeStack::addScope()
 {
-    scopeStack.push_back(new SymbolTable());
-    return scopeStack.back();
+    ScopeNode* newNode = new ScopeNode();
+    newNode->symbolTable = new SymbolTable();
+    newNode->parent = scopeStack;
+    newNode->name = newNode->parent->name + "-" + std::to_string(newNode->parent->children.size());
+
+    scopeStack->children.push_back(newNode);
+    scopeStack = newNode;
+    return scopeStack->symbolTable;
 }
 
 SymbolTable* ScopeStack::removeScope()
 {
-    scopeStack.pop_back();
-    if (!scopeStack.empty())
-    {
-        return scopeStack.back();
-    }
-    else
-    {
-        return globals;
-    }
+    scopeStack = scopeStack->parent;
+    return scopeStack->symbolTable;
 }
 
 SymbolTable* ScopeStack::getGlobals()
 {
-    return globals;
+    return globals->symbolTable;
 }
 
 SymbolTable* ScopeStack::getSymbolTableFromStack(std::string symbolname)
 {
-    Symbol* result;
-    for (auto scope = scopeStack.rbegin(); scope != scopeStack.rend(); ++scope)
+    ScopeNode* current = scopeStack;
+    while (current != NULL)
     {
-        result = (*scope)->getSymbolObjectbyName(symbolname);
+        Symbol* result = current->symbolTable->getSymbolObjectbyName(symbolname);
         if (result != C_NULL)
         {
-            return (*scope);
+            return current->symbolTable;
         }
+        current = current->parent;
     }
-
-    result = globals->getSymbolObjectbyName(symbolname);
-    if (result != C_NULL)
-    {
-        return globals;
-    }
-
     return C_NULL;
 }
 
-void ScopeStack::printSymbolTables()
+void ScopeStack::printSymbolTables(ScopeNode* node, int level)
 {
-    cout << endl << "Symbol Tables:" << endl;
-    cout << "==============" << endl;
-    globals->printSymbolTable();
-
-    for (auto scope = scopeStack.begin(); scope != scopeStack.end(); ++scope)
+    if (node == NULL)
     {
-        cout << "====================================================================================================" << endl;
-        (*scope)->printSymbolTable();
+        node = globals;
+    }
+
+    cout << endl;
+    cout << right << setfill('=') << setw(2*(level+1)) << "=>" << left << setfill(' ') << node->name << endl;
+    cout << left << setw(2*(level+1)) << "" << setfill('=') << setw(node->name.size()) << "" << setfill(' ') << endl;
+
+    node->symbolTable->printSymbolTable();
+    cout << "====================================================================================================" << endl;
+
+    for(int i = 0; i < node->children.size(); ++i)
+    {
+        printSymbolTables(node->children[i], level+1);
     }
 }

@@ -331,11 +331,11 @@ enum_list: IDENTIFIER
            | IDENTIFIER ',' enum_list
            ;
 
-case_list:  case_list CASE rvalue case_scope_begin break_stmt_list      {scope.printSymbolTables(); table = scope.removeScope();}
-            | CASE rvalue case_scope_begin break_stmt_list              {scope.printSymbolTables(); table = scope.removeScope();}
+case_list:  case_list CASE rvalue case_scope_begin break_stmt_list      { table = scope.removeScope(); }
+            | CASE rvalue case_scope_begin break_stmt_list              { table = scope.removeScope(); }
             ;
 
-case_default: DEFAULT case_scope_begin break_stmt_list                  {scope.printSymbolTables(); table = scope.removeScope();}
+case_default: DEFAULT case_scope_begin break_stmt_list                  { table = scope.removeScope(); }
             ;
             
 expr_list: expr
@@ -375,7 +375,7 @@ scope_begin: '{'            {
                             }
              ;
 
-scope_end: '}'              {scope.printSymbolTables(); table = scope.removeScope();}
+scope_end: '}'              { table = scope.removeScope();}
            ;
 
 case_scope_begin: ':'       {table = scope.addScope();}
