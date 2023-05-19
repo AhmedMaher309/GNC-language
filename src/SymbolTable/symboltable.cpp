@@ -101,10 +101,10 @@ void SymbolTable::checkSymbolTable()
 }
 
 // destructor
-SymbolTable::~SymbolTable()
+/* SymbolTable::~SymbolTable()
 {
     for (auto x : symbolTable)
     {
         delete x.second;
     }
-}
+} */

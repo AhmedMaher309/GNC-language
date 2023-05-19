@@ -25,4 +25,5 @@ public:
     SymbolTable* getGlobals();
     SymbolTable* getSymbolTableFromStack(std::string symbolname);
     void printSymbolTables(ScopeNode* node = NULL, int level = 0);
+    ~ScopeStack();
 };
