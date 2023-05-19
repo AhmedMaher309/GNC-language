@@ -12,6 +12,14 @@ Identifier Token: MAX
 Identifier Token: a
 Identifier Token: b
 Identifier Token: main
+Identifier Token: day
+Identifier Token: day
+Identifier Token: case1
+Identifier Token: case2
+Identifier Token: case3
+Identifier Token: case4
+Identifier Token: case5
+Identifier Token: caseD
 Identifier Token: test
 Identifier Token: x
 Identifier Token: test

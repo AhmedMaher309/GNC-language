@@ -13,6 +13,7 @@
     #include <stdlib.h>
     #include <string.h>
     #include "../Scopes/scopestack.h"
+    #include "../QuadGenerator/quadgenerator.h"
     #include "../FunctionTable/functiontable.h"
     #include "../Validator/validator.h"
     extern void lex_init(void*&);
@@ -25,6 +26,7 @@
     extern int yyget_leng(void*);
 
     ScopeStack scope;
+    QuadGenerator generator;
     SymbolTable* table = scope.getGlobals();
 
     FunctionTable functions;
@@ -105,6 +107,8 @@
 %type <gvalue> type
 %type <gvalue> expr
 %type <gvalue> rvalue
+%type <gvalue> func_sgnt
+%type <gvalue> ret_func_sgnt
 
 /*to specify the precedence and associativity of operators*/
 %left PLUS MINUS
@@ -242,12 +246,12 @@ while_stmt: while_proto
            | while_define
            ;
            
-repeat_stmt: REPEAT scope_begin stmt_list scope_end UNTIL '(' expr ')' ';'
-                  | REPEAT scope_begin scope_end UNTIL '(' expr ')' ';'
+repeat_stmt: REPEAT scope_begin stmt_list scope_end UNTIL '(' expr ')' ';'              { generator.endScope(@4.first_line, "repeat"); }
+                  | REPEAT scope_begin scope_end UNTIL '(' expr ')' ';'                 { generator.endScope(@4.first_line, "repeat"); }
                   ;
                   
-switch_stmt:   SWITCH '(' IDENTIFIER ')' scope_begin case_list case_default scope_end ';'
-                | SWITCH '(' IDENTIFIER ')' scope_begin case_default scope_end ';'
+switch_stmt:   SWITCH '(' IDENTIFIER ')' scope_begin case_list case_default scope_end   { generator.endScope(@8.first_line, "switch"); }
+                | SWITCH '(' IDENTIFIER ')' scope_begin case_default scope_end          { generator.endScope(@7.first_line, "switch"); }
                 ;
 
 
@@ -256,8 +260,8 @@ func_proto: func_sgnt parameters ';'                                            
           | ret_func_sgnt parameters ';'                                                { functions.addFunctionInTable(func); func = NULL; };
           ;
 
-func_define: func_sgnt parameters scope_begin stmt_list scope_end                       { func->setIsDefined(1); functions.addFunctionInTable(func); func = NULL; };
-           | ret_func_sgnt parameters scope_begin func_stmt_list scope_end              { func->setIsDefined(1); functions.addFunctionInTable(func); func = NULL; };
+func_define: func_sgnt parameters scope_begin stmt_list scope_end                       { generator.endScope(@5.first_line, $1.value); func->setIsDefined(1); functions.addFunctionInTable(func); func = NULL; };
+           | ret_func_sgnt parameters scope_begin func_stmt_list scope_end              { generator.endScope(@5.first_line, $1.value); func->setIsDefined(1); functions.addFunctionInTable(func); func = NULL; };
            ;
         
 func_call: IDENTIFIER '(' expr_list ')'                                                 { /*Check function table to make sure function exists and correct parameters*/ };
@@ -268,36 +272,38 @@ for_proto: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' ';'
 	       | FOR '(' expr ';' expr ';' expr ')' ';'
            ;
 
-for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' scope_begin stmt_list scope_end 
-	        | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' scope_begin break_stmt_list scope_end 
-            | FOR '(' expr ';' expr ';' expr ')' scope_begin stmt_list scope_end 
-            | FOR '(' expr ';' expr ';' expr ')' scope_begin break_stmt_list scope_end 
+for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' scope_begin stmt_list scope_end                   {generator.endScope(@13.first_line, "for");}
+	        | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' scope_begin break_stmt_list scope_end           {generator.endScope(@13.first_line, "for");}
+            | FOR '(' expr ';' expr ';' expr ')' scope_begin stmt_list scope_end                                {generator.endScope(@11.first_line, "for");}
+            | FOR '(' expr ';' expr ';' expr ')' scope_begin break_stmt_list scope_end                          {generator.endScope(@11.first_line, "for");}
             ;
 
 
-if_proto: IF '(' expr ')' ';' 
+if_proto: IF '(' expr ')' ';'
         ;
 
-if_define: IF '(' expr ')' scope_begin stmt_list scope_end 
-           |  IF '(' expr ')' scope_begin stmt_list scope_end ELSE scope_begin stmt_list scope_end
-           |  IF '(' expr ')' scope_begin stmt_list scope_end ELSE scope_begin scope_end
-           |  IF '(' expr ')' scope_begin stmt_list scope_end ELSE ';'
-	       |  IF '(' expr ')' scope_begin scope_end 
-           |  IF '(' expr ')' scope_begin scope_end ELSE scope_begin stmt_list scope_end
-           |  IF '(' expr ')' scope_begin scope_end ELSE scope_begin scope_end
-           |  IF '(' expr ')' scope_begin scope_end ELSE ';'
-           ;
+if_define: if_scope 
+         | if_scope else_scope
+         ;
 
+if_scope: IF '(' expr ')' scope_begin stmt_list scope_end                   {generator.endScope(@7.first_line, "if");}
+        | IF '(' expr ')' scope_begin scope_end                             {generator.endScope(@6.first_line, "if");}
+        ;
 
-enum_declare: ENUM IDENTIFIER scope_begin enum_list scope_end ';' ;
+else_scope: ELSE scope_begin stmt_list scope_end                            {generator.endScope(@4.first_line, "else");}
+          | ELSE scope_begin scope_end                                      {generator.endScope(@3.first_line, "else");}
+          | ELSE ';'
+          ;
 
-enum_define: ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER ';'
+enum_declare: ENUM IDENTIFIER scope_begin enum_list scope_end ';' ;         /*{TODO:ENUM SCOPES}*/
+
+enum_define: ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER ';' ;
 
 while_proto: WHILE '(' expr ')' ';' ;
 
 
-while_define: WHILE '(' expr ')' scope_begin stmt_list scope_end    
-             | WHILE '(' expr ')' scope_begin break_stmt_list scope_end
+while_define: WHILE '(' expr ')' scope_begin stmt_list scope_end            {generator.endScope(@7.first_line, "while");}
+             | WHILE '(' expr ')' scope_begin break_stmt_list scope_end     {generator.endScope(@7.first_line, "while");}
              ;
 
 
@@ -312,10 +318,10 @@ type: TYPE_INT { $$.type = "TYPE"; $$.value = "int"; }
       ;
 
 
-func_sgnt: TYPE_VOID IDENTIFIER '('             { func = new Function($2.value, "void"); };
+func_sgnt: TYPE_VOID IDENTIFIER '('             { $$.type = "void"; $$.value = $2.value; func = new Function($2.value, "void"); };
          ;
 
-ret_func_sgnt: type IDENTIFIER '('              { func = new Function($2.value, $1.value); };
+ret_func_sgnt: type IDENTIFIER '('              { $$.type = $1.type; $$.value = $2.value; func = new Function($2.value, $1.value); };
              ;
 
 
@@ -337,11 +343,11 @@ enum_list: IDENTIFIER
            | IDENTIFIER ',' enum_list
            ;
 
-case_list:  case_list CASE rvalue case_scope_begin break_stmt_list      { table = scope.removeScope(); }
-            | CASE rvalue case_scope_begin break_stmt_list              { table = scope.removeScope(); }
+case_list:  case_list CASE rvalue case_scope_begin break_stmt_list      { generator.endScope(@5.first_line, "case"); table = scope.removeScope(); }
+            | CASE rvalue case_scope_begin break_stmt_list              { generator.endScope(@4.first_line, "case"); table = scope.removeScope(); }
             ;
 
-case_default: DEFAULT case_scope_begin break_stmt_list                  { table = scope.removeScope(); }
+case_default: DEFAULT case_scope_begin break_stmt_list                  { generator.endScope(@3.first_line, "case"); table = scope.removeScope(); }
             ;
             
 expr_list: expr
@@ -399,6 +405,7 @@ expr: rvalue { $$ = $1; }
      ;
 
 scope_begin: '{'            {
+                                generator.startScope(@1.first_line);
                                 table = scope.addScope();
                                 if(func != NULL) 
                                 {
@@ -416,7 +423,9 @@ scope_end: '}'              {
                             }
            ;
 
-case_scope_begin: ':'       {table = scope.addScope();}
+case_scope_begin: ':'       {   generator.startScope(@1.first_line);
+                                table = scope.addScope();
+                            }
                 ;
 
 %%
@@ -433,6 +442,7 @@ int main(int argc, char **argv) {
 
     scope.printSymbolTables();
     functions.printFunctionTable();
+    generator.printQuads();
 
     lex_deinit(scanner);
 

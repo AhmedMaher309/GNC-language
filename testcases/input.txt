@@ -4,8 +4,32 @@ int test  = 0;
 string z = x;
 void TestFunc(int x, int y, int z, int w); 
 int MAX(int a, int b); 
+
 int main()
 {
+    int day = 3;
+
+    switch (day) {
+    case 1:
+        int case1;
+        break;
+    case 2:
+        int case2;
+        break;
+    case 3:
+        int case3;
+        break;
+    case 4:
+        int case4;
+        break;
+    case 5:
+        int case5;
+        break;
+    default:
+        int caseD;
+        break;
+    }
+
     if (5 > 3)
     {
         test = 666;
