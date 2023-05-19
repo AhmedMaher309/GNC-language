@@ -132,7 +132,7 @@ program: program stmt
 
  /*////////////////// second degreee ////////////////////////////*/
 
-stmt: genn_stmt  {printf("genn_stmt\n");}
+stmt: genn_stmt // {printf("genn_stmt\n");}
       | func_stmt
       | print_stmt
       | for_stmt
@@ -144,8 +144,8 @@ stmt: genn_stmt  {printf("genn_stmt\n");}
       | COMMENT
       ;
 
-stmt_list: stmt             {printf("stmt\n");}
-         | stmt_list stmt   {printf("stmt_list stmt\n");}
+stmt_list: stmt             //{printf("stmt\n");}
+         | stmt_list stmt   //{printf("stmt_list stmt\n");}
          ;
 
 func_stmt_list: stmt_list RETURN expr ';'       {/*Check func Vartype with expr type*/}
@@ -164,37 +164,39 @@ genn_stmt:  type IDENTIFIER ';'                         {   table->addSymbolInTa
            | IDENTIFIER EQU func_call ';'
            | CONSTANT type IDENTIFIER EQU rvalue ';'    {
                                                             Symbol* sym = new Symbol($3.value, $2.value);
-                                                            sym->setIsInitialised(1); sym->setIsConstant(1);
-                                                            if (sym->getVarType()==$5.type || (sym->getVarType()=="int" && $5.type=="float")|| (sym->getVarType()=="float" && $5.type=="int")) {
+                                                            sym->setIsInitialised(1); 
+                                                            sym->setIsConstant(1);
+                                                            if (sym->getVarType()==$5.type || (sym->getVarType()=="int" && $5.type=="float")|| (sym->getVarType()=="float" && $5.type=="int")) 
+                                                            {
                                                                 table->addSymbolInTable(sym);
                                                                 table->modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), $5.type, $5.value));
-                                                                }
-                                                            else {
+                                                            }
+                                                            else{
                                                                 printf("ERROR! Type Mismatching \n");
-                                                                }
+                                                            }
                                                         }
+
            | IDENTIFIER EQU expr ';'                    {
                                                             SymbolTable* firstTable = scope.getSymbolTableFromStack($1.value);
                                                             if (firstTable != NULL)
                                                             {
                                                                 Symbol* sym = firstTable->getSymbolObjectbyName($1.value);
-                                                                if(sym->getVarType()==$3.type || (sym->getVarType()=="int" && $3.type=="float") || (sym->getVarType()=="float" && $3.type=="int")) {
+                                                                if(sym->getVarType()==$3.type || (sym->getVarType()=="int" && $3.type=="float") || (sym->getVarType()=="float" && $3.type=="int")) 
+                                                                {
                                                                     table->setSymbolByNameInTable($1.value,valid.TypeConversion(sym->getVarType(), $3.type, $3.value));
-                                                                    }
-                                                                else if (  strcmp($3.type, "ID") != 0 ) // condition to account for undefined variables
-                                                                     {
+                                                                }
+                                                                else if(  strcmp($3.type, "ID") != 0 ) // condition to account for undefined variables
+                                                                {
                                                                         printf("ERROR! Type Mismatching\n");
-                                                                    }
+                                                                }
                                                             }
                                                         }
-           | type IDENTIFIER EQU expr ';'               { 
-                                                            printf("IDENTIFIER = %s;\n", $2.value);
 
+           | type IDENTIFIER EQU expr ';'               { 
                                                             Symbol* sym = table->getSymbolObjectbyName($2.value);
                                                             if (sym == NULL)
                                                             {
                                                                 Symbol* sym = new Symbol($2.value,$1.value);
-                                                                printf("Type = %s, VALUE= %s\n",$4.type,$4.value);
                                                                 if (sym->getVarType()==$4.type || (sym->getVarType()=="int" && $4.type=="float") || (sym->getVarType()=="float" && $4.type=="int")) {
                                                                     sym->setIsInitialised(1); 
                                                                     table->addSymbolInTable(sym); 
@@ -205,7 +207,6 @@ genn_stmt:  type IDENTIFIER ';'                         {   table->addSymbolInTa
                                                                 }
                                                             }
                                                         }
-
            | expr ';'
            ;
 
@@ -255,7 +256,7 @@ func_define: func_sgnt parameters scope_begin stmt_list scope_end               
            | ret_func_sgnt parameters scope_begin func_stmt_list scope_end              { func->setIsDefined(1); functions.addFunctionInTable(func); func = NULL; };
            ;
         
-func_call: IDENTIFIER '(' expr_list ')'                                                     { /*Check function table to make sure function exists and correct parameters*/ };
+func_call: IDENTIFIER '(' expr_list ')'                                                 { /*Check function table to make sure function exists and correct parameters*/ };
 
 
 
@@ -291,7 +292,7 @@ enum_define: ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER ';'
 while_proto: WHILE '(' expr ')' ';' ;
 
 
-while_define: WHILE '(' expr ')' scope_begin stmt_list scope_end      {printf("while define\n");}
+while_define: WHILE '(' expr ')' scope_begin stmt_list scope_end    
              | WHILE '(' expr ')' scope_begin break_stmt_list scope_end
              ;
 
@@ -345,46 +346,111 @@ expr_list: expr
 
 expr: rvalue { $$ = $1; }
      | IDENTIFIER               { 
-                                 Symbol* sym= table->getSymbolObjectbyName($1.value);
-                                 if (sym!=NULL)
-                                 { 
-                                    printf("this is value %s\n",$1.value); 
-                                    sym->setIsUsed(1);
-                                    $$.type =table->getSymbolTypeByNameInTable($1.value);
-                                    $$.value = table->getSymbolByNameInTable($1.value);
-                                    if(!sym->checkInitialisation()) 
-                                    { 
-                                        printf("warning: Variable not initialized\n");
+                                    Symbol* sym = table->getSymbolObjectbyName($1.value);
+                                    if (sym!= NULL)
+                                    {  
+                                        sym->setIsUsed(1);
+                                        $$.type =table->getSymbolTypeByNameInTable($1.value);
+                                        $$.value = table->getSymbolByNameInTable($1.value);
+                                        if(!sym->checkInitialisation()) 
+                                        { 
+                                            printf("warning: Variable not initialized\n");
+                                        }
+                                    } 
+                                    else 
+                                    {
+                                        printf("Error: Unidentified variable\n");
                                     }
+                                }
+     | expr PLUS expr           {
+                                    if(!($1.type == $3.type))
+                                    { printf("Error: Type mismatch\n");}
+                    
+                                }
+     | expr MINUS expr          {
+                                    if(!($1.type == $3.type))
+                                    { printf("Error: Type mismatch\n");}
+                    
+                                }
+     | expr MULT expr           {
+                                    if(!($1.type == $3.type))
+                                    { printf("Error: Type mismatch\n");}
+                    
                                 } 
-                                else 
-                                {
-                                    printf("Error: Unidentified variable\n");
-
+     | expr DIV expr            {
+                                    if(!($1.type == $3.type))
+                                    { printf("Error: Type mismatch\n");}
+                    
                                 }
+     | expr POWER expr          {
+                                    if(!($1.type == $3.type))
+                                    { printf("Error: Type mismatch\n");}
+                    
                                 }
-     | expr PLUS expr           
-     | expr MINUS expr          
-     | expr MULT expr           
-     | expr DIV expr            
-     | expr POWER expr          
-     | expr MODULE expr         
-     | expr EQU_EQU expr        
-     | expr NOT_EQU expr        
-     | expr MORE_OR_EQU expr    
-     | expr LESS_OR_EQU expr    
-     | expr MORE expr             {printf("more\n");}
-     | expr LESS expr           
-     | expr AND expr            
-     | expr OR expr             
-     | expr INC                 
-     | expr DEC                
-     | NOT expr                
+     | expr MODULE expr         {
+                                    if(!($1.type == $3.type))
+                                    { printf("Error: Type mismatch\n");}
+                    
+                                }
+     | expr EQU_EQU expr        {
+                                    if(!($1.type == $3.type))
+                                    { printf("Error: Type mismatch\n");}
+                    
+                                }
+     | expr NOT_EQU expr        {
+                                    if(!($1.type == $3.type))
+                                    { printf("Error: Type mismatch\n");}
+                    
+                                }
+     | expr MORE_OR_EQU expr    {
+                                    if(!($1.type == $3.type))
+                                    { printf("Error: Type mismatch\n");}
+                    
+                                }
+     | expr LESS_OR_EQU expr    {
+                                    if(!($1.type == $3.type))
+                                    { printf("Error: Type mismatch\n");}
+                    
+                                }
+     | expr MORE expr           {
+                                    if(!($1.type == $3.type))
+                                    { printf("Error: Type mismatch\n");}
+                    
+                                }
+     | expr LESS expr           {
+                                    if(!($1.type == $3.type))
+                                    { printf("Error: Type mismatch\n");}
+                    
+                                }
+     | expr AND expr            {
+                                    if(!($1.type == $3.type))
+                                    { printf("Error: Type mismatch\n");}
+                    
+                                }
+     | expr OR expr             {
+                                    if(!($1.type == $3.type))
+                                    { printf("Error: Type mismatch\n");}
+                    
+                                }
+     | expr INC                 {
+                                    if (!($1.type == "int") || !($1.type == "float")){
+                                        { printf("Error: Cant increment variable of this type\n");}
+                                    }
+                                }
+     | expr DEC                 {
+                                    if (!($1.type == "int") || !($1.type == "float")){
+                                        { printf("Error: Cant decrement variable of this type\n");}
+                                    }
+                                }
+     | NOT expr                 {
+                                    if (!($2.type == "int") || !($2.type == "bool")){
+                                        { printf("Error: Cant negate variable of this type\n");}
+                                    }
+                                }
      ;
 
 scope_begin: '{'            {
                                 table = scope.addScope();
-                                printf("Scope begin\n"); 
                                 if(func != NULL) 
                                 {
                                     for(int i = 0; i < func->getCount(); i++)
@@ -398,7 +464,6 @@ scope_begin: '{'            {
 scope_end: '}'              {
                                 table->checkSymbolTable(); 
                                 table = scope.removeScope();
-                                printf("Scope end\n");
                             }
            ;
 
@@ -460,6 +525,7 @@ static int yyreport_syntax_error(const yypcontext_t *ctx, void* scanner)
         yysymbol_kind_t lookahead = yypcontext_token(ctx);
         if (lookahead != YYSYMBOL_YYEMPTY)
         {
+            fprintf(stderr, " before %s, len = %d", yysymbol_name(lookahead), yyget_leng(scanner));
         }
     }
 

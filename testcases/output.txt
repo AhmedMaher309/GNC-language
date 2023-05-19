@@ -3,7 +3,14 @@ Identifier Token: y
 Identifier Token: y
 Identifier Token: x
 Identifier Token: z
+Identifier Token: z
 Identifier Token: y
+Identifier Token: z
+Identifier Token: t
+Identifier Token: y
+Identifier Token: x
+Identifier Token: z
+Identifier Token: new
 Identifier Token: z
 Identifier Token: TestFunc
 Identifier Token: x
