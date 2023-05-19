@@ -1,19 +1,54 @@
-while (5 > 3)
+int x = 5;
+int y;
+y = x;
+string z = "compilers";
+y = z;
+void TestFunc(int x, int y, int z, int w); 
+int MAX(int a, int b); 
+
+int main()
 {
-    int test = 666;
-    int x = test;
+    if (5 > 3)
+    {
+        int test = 666;
+        int x = test;
+    }
+
+    while(1)
+    {
+        int yy = x;
+        if (1)
+        {
+            int x = 23;
+            string z = "new";
+            x = 99;
+        }
+        else
+        {
+            x = 1;
+        }
+    }
+
+    return 0;
 }
-while(1)
+
+void NewFunc()
 {
-    int yy = x;
-    if (1)
+    int g_x = x;
+    x = 15;
+    while(1)
     {
-        int x = 23;
-        string z = "new";
-        x = 99;
+        y = x;
+        x = g_x;
     }
-    else
-    {
-        x = 1;
-    }
+}
+
+void strprnt(string s)
+{
+    print(s);
+}
+
+int MAX(int a, int b)
+{
+    return a+b;
 }

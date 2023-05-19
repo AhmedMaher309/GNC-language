@@ -175,9 +175,9 @@ genn_stmt:  type IDENTIFIER ';'                         {   table->addSymbolInTa
                                                         }
            | IDENTIFIER EQU expr ';'                    {
                                                             SymbolTable* firstTable = scope.getSymbolTableFromStack($1.value);
-                                                            Symbol* sym = firstTable->getSymbolObjectbyName($1.value);
                                                             if (firstTable != NULL)
                                                             {
+                                                                Symbol* sym = firstTable->getSymbolObjectbyName($1.value);
                                                                 if(sym->getVarType()==$3.type || (sym->getVarType()=="int" && $3.type=="float") || (sym->getVarType()=="float" && $3.type=="int")) {
                                                                     table->setSymbolByNameInTable($1.value,valid.TypeConversion(sym->getVarType(), $3.type, $3.value));
                                                                     }
