@@ -1,20 +1,14 @@
-int x = 5;
+int x;
 int y;
-y = x;
-string z = "compilers";
-z++;
-y = z;
-string t = "";
-y = x+z;
-int new = !z;
+int test  = 0;
+string z = x;
 void TestFunc(int x, int y, int z, int w); 
 int MAX(int a, int b); 
-
 int main()
 {
     if (5 > 3)
     {
-        int test = 666;
+        test = 666;
         int x = test;
     }
 

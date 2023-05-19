@@ -63,6 +63,13 @@ string Validator ::TypeConversion(string type1, string type2, string value)
     return value;
 }
 
+bool Validator::checkType(string type1, string type2, int lineNumber){
+    if(type1 != type2){
+        printf("Error [%d]: Type mismatch\n",lineNumber);
+        return false;
+    }
+    return true;
+}
 bool Validator::isConstant(bool isinitialised, bool isconstant)
 {
     if (isinitialised && isconstant)

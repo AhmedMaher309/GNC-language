@@ -159,7 +159,7 @@ break_stmt_list: stmt_list BREAK ';'
 
  /*/////////////////// third degree /////////////////////////////*/
 
-genn_stmt:  type IDENTIFIER ';'                         {   table->addSymbolInTable(new Symbol($2.value,$1.value));}
+genn_stmt:  type IDENTIFIER ';'                         {    printf("hello \n");table->addSymbolInTable(new Symbol($2.value,$1.value));}
            | type IDENTIFIER EQU func_call ';'
            | IDENTIFIER EQU func_call ';'
            | CONSTANT type IDENTIFIER EQU rvalue ';'    {
@@ -183,7 +183,7 @@ genn_stmt:  type IDENTIFIER ';'                         {   table->addSymbolInTa
                                                                 Symbol* sym = firstTable->getSymbolObjectbyName($1.value);
                                                                 if(sym->getVarType()==$3.type || (sym->getVarType()=="int" && $3.type=="float") || (sym->getVarType()=="float" && $3.type=="int")) 
                                                                 {
-                                                                    table->setSymbolByNameInTable($1.value,valid.TypeConversion(sym->getVarType(), $3.type, $3.value));
+                                                                    firstTable->setSymbolByNameInTable($1.value,valid.TypeConversion(sym->getVarType(), $3.type, $3.value));
                                                                 }
                                                                 else if(  strcmp($3.type, "ID") != 0 ) // condition to account for undefined variables
                                                                 {
@@ -197,7 +197,8 @@ genn_stmt:  type IDENTIFIER ';'                         {   table->addSymbolInTa
                                                             if (sym == NULL)
                                                             {
                                                                 Symbol* sym = new Symbol($2.value,$1.value);
-                                                                if (sym->getVarType()==$4.type || (sym->getVarType()=="int" && $4.type=="float") || (sym->getVarType()=="float" && $4.type=="int")) {
+                                                                bool out = valid.checkType(sym->getVarType(), $4.type, @1.first_line);
+                                                                if (out/*sym->getVarType()==$4.type*/ || (sym->getVarType()=="int" && $4.type=="float") || (sym->getVarType()=="float" && $4.type=="int")) {
                                                                     sym->setIsInitialised(1); 
                                                                     table->addSymbolInTable(sym); 
                                                                     table->setSymbolByNameInTable($2.value,valid.TypeConversion(sym->getVarType(), $4.type, $4.value));
@@ -205,6 +206,9 @@ genn_stmt:  type IDENTIFIER ';'                         {   table->addSymbolInTa
                                                                 else if ( strcmp($4.type, "ID") != 0 ) { // condition to account for undefined variables
                                                                     printf("ERROR! Type Mismatching \n");
                                                                 }
+                                                            }
+                                                            else{
+                                                                   printf("ERROR! variable defined before \n");
                                                             }
                                                         }
            | expr ';'
@@ -346,12 +350,13 @@ expr_list: expr
 
 expr: rvalue { $$ = $1; }
      | IDENTIFIER               { 
-                                    Symbol* sym = table->getSymbolObjectbyName($1.value);
-                                    if (sym!= NULL)
-                                    {  
+                                    SymbolTable* firstTable = scope.getSymbolTableFromStack($1.value);
+                                    if (firstTable != NULL)
+                                    {
+                                        Symbol* sym = firstTable->getSymbolObjectbyName($1.value);
                                         sym->setIsUsed(1);
-                                        $$.type =table->getSymbolTypeByNameInTable($1.value);
-                                        $$.value = table->getSymbolByNameInTable($1.value);
+                                        $$.type =firstTable->getSymbolTypeByNameInTable($1.value);
+                                        $$.value = firstTable->getSymbolByNameInTable($1.value);
                                         if(!sym->checkInitialisation()) 
                                         { 
                                             printf("warning: Variable not initialized\n");
@@ -362,76 +367,20 @@ expr: rvalue { $$ = $1; }
                                         printf("Error: Unidentified variable\n");
                                     }
                                 }
-     | expr PLUS expr           {
-                                    if(!($1.type == $3.type))
-                                    { printf("Error: Type mismatch\n");}
-                    
-                                }
-     | expr MINUS expr          {
-                                    if(!($1.type == $3.type))
-                                    { printf("Error: Type mismatch\n");}
-                    
-                                }
-     | expr MULT expr           {
-                                    if(!($1.type == $3.type))
-                                    { printf("Error: Type mismatch\n");}
-                    
-                                } 
-     | expr DIV expr            {
-                                    if(!($1.type == $3.type))
-                                    { printf("Error: Type mismatch\n");}
-                    
-                                }
-     | expr POWER expr          {
-                                    if(!($1.type == $3.type))
-                                    { printf("Error: Type mismatch\n");}
-                    
-                                }
-     | expr MODULE expr         {
-                                    if(!($1.type == $3.type))
-                                    { printf("Error: Type mismatch\n");}
-                    
-                                }
-     | expr EQU_EQU expr        {
-                                    if(!($1.type == $3.type))
-                                    { printf("Error: Type mismatch\n");}
-                    
-                                }
-     | expr NOT_EQU expr        {
-                                    if(!($1.type == $3.type))
-                                    { printf("Error: Type mismatch\n");}
-                    
-                                }
-     | expr MORE_OR_EQU expr    {
-                                    if(!($1.type == $3.type))
-                                    { printf("Error: Type mismatch\n");}
-                    
-                                }
-     | expr LESS_OR_EQU expr    {
-                                    if(!($1.type == $3.type))
-                                    { printf("Error: Type mismatch\n");}
-                    
-                                }
-     | expr MORE expr           {
-                                    if(!($1.type == $3.type))
-                                    { printf("Error: Type mismatch\n");}
-                    
-                                }
-     | expr LESS expr           {
-                                    if(!($1.type == $3.type))
-                                    { printf("Error: Type mismatch\n");}
-                    
-                                }
-     | expr AND expr            {
-                                    if(!($1.type == $3.type))
-                                    { printf("Error: Type mismatch\n");}
-                    
-                                }
-     | expr OR expr             {
-                                    if(!($1.type == $3.type))
-                                    { printf("Error: Type mismatch\n");}
-                    
-                                }
+     | expr PLUS expr           {valid.checkType($1.type, $3.type, @1.first_line);}
+     | expr MINUS expr          {valid.checkType($1.type, $3.type, @1.first_line);}
+     | expr MULT expr           {valid.checkType($1.type, $3.type, @1.first_line);}
+     | expr DIV expr            {valid.checkType($1.type, $3.type, @1.first_line);}
+     | expr POWER expr          {valid.checkType($1.type, $3.type, @1.first_line);}
+     | expr MODULE expr         {valid.checkType($1.type, $3.type, @1.first_line);}
+     | expr EQU_EQU expr        {valid.checkType($1.type, $3.type, @1.first_line);}
+     | expr NOT_EQU expr        {valid.checkType($1.type, $3.type, @1.first_line);}
+     | expr MORE_OR_EQU expr    {valid.checkType($1.type, $3.type, @1.first_line);}
+     | expr LESS_OR_EQU expr    {valid.checkType($1.type, $3.type, @1.first_line);}
+     | expr MORE expr           {valid.checkType($1.type, $3.type, @1.first_line);}
+     | expr LESS expr           {valid.checkType($1.type, $3.type, @1.first_line);}
+     | expr AND expr            {valid.checkType($1.type, $3.type, @1.first_line);}
+     | expr OR expr             {valid.checkType($1.type, $3.type, @1.first_line);}
      | expr INC                 {
                                     if (!($1.type == "int") || !($1.type == "float")){
                                         { printf("Error: Cant increment variable of this type\n");}
