@@ -32,5 +32,4 @@ public:
     bool checkInitialisation();
     bool checkUsed();
 
-    ~Symbol();
 };

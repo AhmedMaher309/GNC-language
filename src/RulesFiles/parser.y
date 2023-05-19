@@ -422,8 +422,6 @@ int main(int argc, char **argv) {
 
     lex_deinit(scanner);
 
-    valid.~Validator();
-
     return 0;
 }
 

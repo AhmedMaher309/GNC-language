@@ -73,10 +73,3 @@ void ScopeStack::printSymbolTables(ScopeNode* node, int level)
         printSymbolTables(node->children[i], level+1);
     }
 }
-
-// destructor
-ScopeStack::~ScopeStack()
-{
-    delete globals;
-    delete scopeStack;
-}

@@ -74,6 +74,3 @@ void Symbol::print()
     cout << this->name << endl;
 }
 
-Symbol::~Symbol()
-{
-}
