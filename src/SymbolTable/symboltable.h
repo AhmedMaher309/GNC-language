@@ -15,7 +15,9 @@ public:
     void modifySymbolInTable(Symbol *symbol, std::string value);
     void setSymbolByNameInTable(std::string symbolname, std::string value);
     const char *getSymbolByNameInTable(std::string symbolname);
+    const char * getSymbolTypeByNameInTable(std::string symbolname);
     Symbol *getSymbolObjectbyName(std::string symbolname);
+    void checkSymbolTable();
     void removeSymbolFromTable(Symbol *symbol);
     void printSymbolTable();
 };

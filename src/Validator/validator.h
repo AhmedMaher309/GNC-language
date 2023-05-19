@@ -10,11 +10,11 @@ private:
     vector<pair<int, string>> err_list;
 
 public:
-    bool isInt(string value);
+    string toInt(string value);
     bool checkFloat(string value);
     bool checkString(string value);
     bool checkChar(string value);
-    bool checkSyntax(string type, string value);
+    string TypeConversion(string type1, string type2, string value);
     bool isConstant(bool isinitialised, bool isconstant);
     // void addtoErrorList(int error_line, string var_name);
     // void printErrorList();

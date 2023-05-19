@@ -13,6 +13,7 @@ private:
     std::string value = "0xgarbage";
     bool isConstant = false;
     bool isInitialised = false;
+    bool isUsed = false;
 
 public:
     Symbol(std::string name, std::string varType);
@@ -21,6 +22,7 @@ public:
     void setValue(std::string value);
     void setIsConstant(bool isConstant);
     void setIsInitialised(bool isInitialised);
+    void setIsUsed(bool isUsed);
     void print();
 
     std::string getName();
@@ -28,4 +30,7 @@ public:
     std::string getValue();
     bool checkConstant();
     bool checkInitialisation();
+    bool checkUsed();
+
+    ~Symbol();
 };

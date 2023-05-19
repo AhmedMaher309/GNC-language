@@ -30,6 +30,8 @@
     FunctionTable functions;
     Function* func = NULL;
 
+    //QuadrupleGen quad;
+    SymbolTable table;
     Validator valid;
 %}
 
@@ -167,10 +169,9 @@ genn_stmt:  type IDENTIFIER ';'                         {   table->addSymbolInTa
            | CONSTANT type IDENTIFIER EQU rvalue ';'    {
                                                             Symbol* sym = new Symbol($3.value, $2.value);
                                                             sym->setIsInitialised(1); sym->setIsConstant(1);
-                                                            bool checker = valid.checkSyntax(sym->getVarType(),$5.value); 
-                                                            if (checker) {
-                                                                table->addSymbolInTable(sym);
-                                                                table->modifySymbolInTable(sym,$5.value);
+                                                            if (sym->getVarType()==$5.type || (sym->getVarType()=="int" && $5.type=="float")|| (sym->getVarType()=="float" && $5.type=="int")) {
+                                                                table.addSymbolInTable(sym);
+                                                                table.modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), $5.type, $5.value));
                                                                 }
                                                             else {
                                                                 printf("error mismatching \n");
@@ -181,11 +182,28 @@ genn_stmt:  type IDENTIFIER ';'                         {   table->addSymbolInTa
                                                             SymbolTable* firstTable = scope.getSymbolTableFromStack($1.value);
                                                             if (firstTable != NULL)
                                                             {
-                                                                Symbol* sym = firstTable->getSymbolObjectbyName($1.value); 
-                                                                bool checker = valid.checkSyntax(sym->getVarType(),$3.value);
-                                                                if(checker) {
-                                                                    firstTable->setSymbolByNameInTable($1.value, $3.value);
+                                                    
+                                                            //     bool checker = valid.checkSyntax(sym->getVarType(),$3.value);
+                                                            //     //printf(" %s\n", $3.value);
+                                                                if(sym->getVarType()==$3.type || (sym->getVarType()=="int" && $3.type=="float") || (sym->getVarType()=="float" && $3.type=="int")) {
+                                                                    table.setSymbolByNameInTable($1.value,valid.TypeConversion(sym->getVarType(), $3.type, $3.value));
                                                                     }
+                                                                else {
+                                                                    printf("error mismatching hereee \n");
+                                                                    }
+                                                            }
+                                                            // printf("ID @ %d:%d\n", @1.first_line, @1.first_column);
+                                                        }
+           | type IDENTIFIER EQU expr ';'               { 
+                                                            Symbol* sym = table.getSymbolObjectbyName($2.value);
+                                                            if (sym == NULL)
+                                                            {
+                                                                Symbol* sym = new Symbol($2.value,$1.value);
+                                                                sym->setIsInitialised(1); 
+                                                                if (sym->getVarType()==$4.type || (sym->getVarType()=="int" && $4.type=="float") || (sym->getVarType()=="float" && $4.type=="int")) {
+                                                                    table.addSymbolInTable(sym); 
+                                                                    table.setSymbolByNameInTable($2.value,valid.TypeConversion(sym->getVarType(), $4.type, $4.value));
+                                                                    } 
                                                                 else {
                                                                     printf("error mismatching\n");
                                                                     }
@@ -343,24 +361,36 @@ expr_list: expr
          ;
 
 expr: rvalue { $$ = $1; }
-     | IDENTIFIER { $$.type = $1.type/*ELMAFROUD HENA NEGIB TYPE EL SYMBOL*/; SymbolTable* firstTable = scope.getSymbolTableFromStack($1.value); if(firstTable != NULL) {$$.value = firstTable->getSymbolByNameInTable($1.value);} else {$$.value = "TEMP";}; }
-     | expr PLUS expr { $$.type = "TEMP"; $$.value = "TEMP"; }
-     | expr MINUS expr { $$.type = "TEMP"; $$.value = "TEMP"; }
-     | expr MULT expr { $$.type = "TEMP"; $$.value = "TEMP"; }
-     | expr DIV expr { $$.type = "TEMP"; $$.value = "TEMP"; }
-     | expr POWER expr { $$.type = "TEMP"; $$.value = "TEMP"; }
-     | expr MODULE expr { $$.type = "TEMP"; $$.value = "TEMP"; }
-     | expr EQU_EQU expr { $$.type = "TEMP"; $$.value = "TEMP"; }
-     | expr NOT_EQU expr { $$.type = "TEMP"; $$.value = "TEMP"; }
-     | expr MORE_OR_EQU expr { $$.type = "TEMP"; $$.value = "TEMP"; }
-     | expr LESS_OR_EQU expr { $$.type = "TEMP"; $$.value = "TEMP"; }
-     | expr MORE expr { $$.type = "TEMP"; $$.value = "TEMP"; }
-     | expr LESS expr { $$.type = "TEMP"; $$.value = "TEMP"; }
-     | expr AND expr { $$.type = "TEMP"; $$.value = "TEMP"; }
-     | expr OR expr { $$.type = "TEMP"; $$.value = "TEMP"; }
-     | expr INC  { $$.type = "TEMP"; $$.value = "TEMP"; }
-     | expr DEC { $$.type = "TEMP"; $$.value = "TEMP"; }
-     | NOT expr { $$.type = "TEMP"; $$.value = "TEMP"; }
+     | IDENTIFIER               { 
+                                    Symbol* sym= table.getSymbolObjectbyName($1.value);
+                                    sym->setIsUsed(1);
+                                    if (sym!=NULL){
+                                        $$.type =table.getSymbolTypeByNameInTable($1.value);
+                                        $$.value = table.getSymbolByNameInTable($1.value);
+                                        if(!sym->checkInitialisation()) 
+                                        {
+                                            printf("warning: Variable not initialized\n");
+                                        }
+                                    }
+                                    else {printf("Error: Unidentified variable\n");}
+     }
+     | expr PLUS expr           { if (valid.isSameType($1.type,$3.type)) {$$.type = $1.type; /* $$.value = $1.value + $3.value; */} else {printf("error mismatching \n");} } /* { fprintf(stderr, "%s PLUS %s\n",$1.type,$3.type);}*/
+     | expr MINUS expr          { if (valid.isSameType($1.type,$3.type)) {$$.type = $1.type; /* $$.value = $1.value + $3.value; */} else {printf("error mismatching \n");} }
+     | expr MULT expr           { if (valid.isSameType($1.type,$3.type)) {$$.type = $1.type; /* $$.value = $1.value + $3.value; */} else {printf("error mismatching \n");} }
+     | expr DIV expr            { if (valid.isSameType($1.type,$3.type)) {$$.type = $1.type; /* $$.value = $1.value + $3.value; */} else {printf("error mismatching \n");} }
+     | expr POWER expr          { if (valid.isSameType($1.type,$3.type)) {$$.type = $1.type; /* $$.value = $1.value + $3.value; */} else {printf("error mismatching \n");} }
+     | expr MODULE expr         { if (valid.isSameType($1.type,$3.type)) {$$.type = $1.type; /* $$.value = $1.value + $3.value; */} else {printf("error mismatching \n");} }
+     | expr EQU_EQU expr        { if (valid.isSameType($1.type,$3.type)) {$$.type = $1.type; /* $$.value = $1.value + $3.value; */} else {printf("error mismatching \n");} }
+     | expr NOT_EQU expr        { if (valid.isSameType($1.type,$3.type)) {$$.type = $1.type; /* $$.value = $1.value + $3.value; */} else {printf("error mismatching \n");} }
+     | expr MORE_OR_EQU expr    { if (valid.isSameType($1.type,$3.type)) {$$.type = $1.type; /* $$.value = $1.value + $3.value; */} else {printf("error mismatching \n");} }
+     | expr LESS_OR_EQU expr    { if (valid.isSameType($1.type,$3.type)) {$$.type = $1.type; /* $$.value = $1.value + $3.value; */} else {printf("error mismatching \n");} }
+     | expr MORE expr           { if (valid.isSameType($1.type,$3.type)) {$$.type = $1.type; /* $$.value = $1.value + $3.value; */} else {printf("error mismatching \n");} }  
+     | expr LESS expr           { if (valid.isSameType($1.type,$3.type)) {$$.type = $1.type; /* $$.value = $1.value + $3.value; */} else {printf("error mismatching \n");} }
+     | expr AND expr            { if (valid.isSameType($1.type,$3.type)) {$$.type = $1.type; /* $$.value = $1.value + $3.value; */} else {printf("error mismatching \n");} }
+     | expr OR expr             { if (valid.isSameType($1.type,$3.type)) {$$.type = $1.type; /* $$.value = $1.value + $3.value; */} else {printf("error mismatching \n");} }
+     | expr INC                 /*  { if (valid.isSameType($1.type,$3.type)) {$$.type = $1.type; /* $$.value = $1.value + $3.value; } else {printf("error mismatching \n");} } */
+     | expr DEC                 /* { if (valid.isSameType($1.type,$3.type)) {$$.type = $1.type; /* $$.value = $1.value + $3.value; } else {printf("error mismatching \n");} } */
+     | NOT expr                 /* { if (valid.isSameType($1.type,$3.type)) {$$.type = $1.type; /* $$.value = $1.value + $3.value; } else {printf("error mismatching \n");} } */
      ;
 
 scope_begin: '{'            {
@@ -397,6 +427,13 @@ int main(int argc, char **argv) {
     functions.printFunctionTable();
 
     lex_deinit(scanner);
+    
+
+    table.checkSymbolTable();
+    table.printSymbolTable(); 
+    
+    table.~SymbolTable();
+    valid.~Validator();
 
     return 0;
 }

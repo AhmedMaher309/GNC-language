@@ -5,18 +5,17 @@
 
 using namespace std;
 
-bool Validator ::isInt(string value)
+// TODO: handle -ve value
+string Validator ::toInt(string value)
 {
-    bool isInteger = 1;
-    for (int i = 0; i < value.length(); i++)
+    for (int i = 1; i < value.length()-1; i++)
     {
         if (!isdigit(value[i]))
         {
-            isInteger = 0;
-            break;
+            return value.substr(0, i);
         }
     }
-    return isInteger;
+    return value;
 }
 bool Validator::checkFloat(string value)
 {
@@ -55,19 +54,13 @@ bool Validator::checkChar(string value)
     else
         return 0;
 }
-bool Validator ::checkSyntax(string type, string value)
+string Validator ::TypeConversion(string type1, string type2, string value)
 {
-    if (type == "int" && isInt(value))
-        return 1;
-    else if (type == "bool" && (value == "1" || value == "0"))
-        return 1;
-    else if (type == "float" && checkFloat(value))
-        return 1;
-    else if (type == "string" && checkString(value))
-        return 1;
-    else if (type == "char" && checkChar(value))
-        return 1;
-    return 0;
+    if (type1 == "int" && type2 == "float" && checkFloat(value))
+    {
+       return toInt(value);
+    }
+    return value;
 }
 
 bool Validator::isConstant(bool isinitialised, bool isconstant)

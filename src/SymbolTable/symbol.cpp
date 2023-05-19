@@ -35,6 +35,11 @@ void Symbol::setIsInitialised(bool isInitialised)
     this->isInitialised = isInitialised;
 }
 
+void Symbol::setIsUsed(bool isUsed)
+{
+    this->isUsed = isUsed;
+}
+
 std::string Symbol::getName()
 {
     return this->name;
@@ -59,7 +64,16 @@ bool Symbol::checkInitialisation()
     return this->isInitialised;
 }
 
+bool Symbol::checkUsed()
+{
+    return this->isUsed;
+}
+
 void Symbol::print()
 {
     cout << this->name << endl;
+}
+
+Symbol::~Symbol()
+{
 }
