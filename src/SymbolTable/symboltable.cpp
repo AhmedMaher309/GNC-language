@@ -27,15 +27,15 @@ void SymbolTable::modifySymbolInTable(Symbol *symbol, std::string value)
     }
 }
 
-void SymbolTable::setSymbolByNameInTable(std::string symbolname, std::string value)
-{
-    if (symbolTable.find(symbolname) != symbolTable.end())
-    {
-        symbolTable[symbolname]->setValue(value);
-        if (value.length() != 0)
-            symbolTable[symbolname]->setIsInitialised(true);
-    }
-}
+// void SymbolTable::setSymbolByNameInTable(std::string symbolname, std::string value)
+// {
+//     if (symbolTable.find(symbolname) != symbolTable.end())
+//     {
+//         symbolTable[symbolname]->setValue(value);
+//         if (value.length() != 0)
+//             symbolTable[symbolname]->setIsInitialised(true);
+//     }
+// }
 
 const char *SymbolTable::getSymbolByNameInTable(std::string symbolname)
 {

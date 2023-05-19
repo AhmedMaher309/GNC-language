@@ -5,7 +5,7 @@
 
 using namespace std;
 
-// TODO: handle -ve value
+// cast float to integer
 string Validator ::toInt(string value)
 {
     for (int i = 1; i < value.length() - 1; i++)
@@ -34,6 +34,7 @@ bool Validator ::isInt(string value)
     }
     return isInteger;
 }
+
 bool Validator::checkFloat(string value)
 {
     bool isfloat = 0;
@@ -57,6 +58,7 @@ bool Validator::checkFloat(string value)
     }
     return (isnum && isfloat);
 }
+
 bool Validator::checkString(string value)
 {
     if (value[0] == '"' && value[value.length() - 1] == '"')
@@ -64,6 +66,7 @@ bool Validator::checkString(string value)
     else
         return 0;
 }
+
 bool Validator::checkChar(string value)
 {
     if (value[0] == '\'' && value[value.length() - 1] == '\'' && value.length() == 3)
@@ -71,6 +74,7 @@ bool Validator::checkChar(string value)
     else
         return 0;
 }
+
 string Validator ::TypeConversion(string type1, string type2, string value)
 {
     if (type1 == "int" && type2 == "float" && checkFloat(value))
@@ -84,11 +88,11 @@ bool Validator::checkType(string type1, string type2, int lineNumber)
 {
     if (type1 != type2 && !(type1 == "float" && type2 == "int") && !(type1 == "int" && type2 == "float"))
     {
-        printf("Error [%d]: Type mismatch\n", lineNumber);
         return false;
     }
     return true;
 }
+
 bool Validator::isConstant(bool isinitialised, bool isconstant)
 {
     if (isinitialised && isconstant)

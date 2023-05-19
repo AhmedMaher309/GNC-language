@@ -148,11 +148,11 @@ stmt: genn_stmt // {printf("genn_stmt\n");}
       | COMMENT
       ;
 
-stmt_list: stmt             //{printf("stmt\n");}
-         | stmt_list stmt   //{printf("stmt_list stmt\n");}
+stmt_list: stmt             
+         | stmt_list stmt   
          ;
 
-func_stmt_list: stmt_list RETURN expr ';'       {/*Check func Vartype with expr type*/}
+func_stmt_list: stmt_list RETURN expr ';'      
                 |  RETURN expr ';'
                 ;
 
@@ -163,38 +163,41 @@ break_stmt_list: stmt_list BREAK ';'
 
  /*/////////////////// third degree /////////////////////////////*/
 
-genn_stmt:  type IDENTIFIER ';'                         {    printf("hello \n");table->addSymbolInTable(new Symbol($2.value,$1.value));}
+genn_stmt:  type IDENTIFIER ';'                         {
+                                                            table->addSymbolInTable(new Symbol($2.value,$1.value));
+                                                        }
+
            | type IDENTIFIER EQU func_call ';'
+
            | IDENTIFIER EQU func_call ';'
+
            | CONSTANT type IDENTIFIER EQU rvalue ';'    {
                                                             Symbol* sym = new Symbol($3.value, $2.value);
                                                             sym->setIsInitialised(1); 
                                                             sym->setIsConstant(1);
-                                                            if (sym->getVarType()==$5.type || (sym->getVarType()=="int" && $5.type=="float")|| (sym->getVarType()=="float" && $5.type=="int")) 
-                                                            {
+                                                            if(valid.checkType(sym->getVarType(), $5.type, @1.first_line)){
                                                                 table->addSymbolInTable(sym);
                                                                 table->modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), $5.type, $5.value));
                                                             }
                                                             else{
-                                                                printf("ERROR! Type Mismatching \n");
+                                                                printf("Error [%d]: Type mismatch\n", @1.first_line);
+
                                                             }
                                                         }
 
            | IDENTIFIER EQU expr ';'                    {
-                                                            SymbolTable* firstTable = scope.getSymbolTableFromStack($1.value);
-                                                            if (firstTable != NULL)
+                                                            SymbolTable* table = scope.getSymbolTableFromStack($1.value);
+                                                            if (table != NULL)
                                                             {
-                                                                Symbol* sym = firstTable->getSymbolObjectbyName($1.value);
-                                                                if((sym->getVarType()==$3.type || (sym->getVarType()=="int" && $3.type=="float") || (sym->getVarType()=="float" && $3.type=="int")) && (!sym->checkConstant())) 
-                                                                {
-                                                                    firstTable->setSymbolByNameInTable($1.value,valid.TypeConversion(sym->getVarType(), $3.type, $3.value));
+                                                                Symbol* sym = table->getSymbolObjectbyName($1.value);
+                                                                if(sym->checkConstant()){
+                                                                    printf("Error [%d]: Constant cannot be reassigned\n", @1.first_line);
                                                                 }
-                                                                else if (sym->checkConstant()){
-                                                                     printf("ERROR! constant variable cannot be reassigned\n");
+                                                                else if(valid.checkType(sym->getVarType(), $3.type, @1.first_line)){
+                                                                    table->modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), $3.type, $3.value));
                                                                 }
-                                                                else if(  strcmp($3.type, "ID") != 0 ) // condition to account for undefined variables
-                                                                {
-                                                                        printf("ERROR! Type Mismatching\n");
+                                                                else{
+                                                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
                                                                 }
                                                             }
                                                         }
@@ -204,18 +207,17 @@ genn_stmt:  type IDENTIFIER ';'                         {    printf("hello \n");
                                                             if (sym == NULL)
                                                             {
                                                                 Symbol* sym = new Symbol($2.value,$1.value);
-                                                                bool out = valid.checkType(sym->getVarType(), $4.type, @1.first_line);
-                                                                if (out/*sym->getVarType()==$4.type*/ || (sym->getVarType()=="int" && $4.type=="float") || (sym->getVarType()=="float" && $4.type=="int")) {
+                                                                if (valid.checkType(sym->getVarType(), $4.type, @1.first_line)) {
                                                                     sym->setIsInitialised(1); 
                                                                     table->addSymbolInTable(sym); 
-                                                                    table->setSymbolByNameInTable($2.value,valid.TypeConversion(sym->getVarType(), $4.type, $4.value));
-                                                                    }
-                                                                else if ( strcmp($4.type, "ID") != 0 ) { // condition to account for undefined variables
-                                                                    printf("ERROR! Type Mismatching \n");
+                                                                    table->modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), $4.type, $4.value));
+                                                                    }                                                 
+                                                                else{
+                                                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
                                                                 }
                                                             }
                                                             else{
-                                                                   printf("ERROR! variable defined before \n");
+                                                                   printf("Error [%d]: Variable is defined before\n", @1.first_line);
                                                             }
                                                         }
            | expr ';'
@@ -249,22 +251,48 @@ while_stmt: while_proto
            | while_define
            ;
            
-repeat_stmt: REPEAT scope_begin stmt_list scope_end UNTIL '(' expr ')' ';'              { generator.endScope(@4.first_line, "repeat"); }
-                  | REPEAT scope_begin scope_end UNTIL '(' expr ')' ';'                 { generator.endScope(@4.first_line, "repeat"); }
+repeat_stmt: REPEAT scope_begin stmt_list scope_end UNTIL '(' expr ')' ';'              { 
+                                                                                            generator.endScope(@4.first_line, "repeat"); 
+                                                                                        }
+
+                  | REPEAT scope_begin scope_end UNTIL '(' expr ')' ';'                 { 
+                                                                                            generator.endScope(@4.first_line, "repeat"); 
+                                                                                        }
                   ;
                   
-switch_stmt:   SWITCH '(' IDENTIFIER ')' scope_begin case_list case_default scope_end   { generator.endScope(@8.first_line, "switch"); }
-                | SWITCH '(' IDENTIFIER ')' scope_begin case_default scope_end          { generator.endScope(@7.first_line, "switch"); }
+switch_stmt:   SWITCH '(' IDENTIFIER ')' scope_begin case_list case_default scope_end   { 
+                                                                                            generator.endScope(@8.first_line, "switch"); 
+                                                                                        }
+
+                | SWITCH '(' IDENTIFIER ')' scope_begin case_default scope_end          { 
+                                                                                            generator.endScope(@7.first_line, "switch"); 
+                                                                                        }
                 ;
 
 
  /*///////////////////// forth degree /////////////////////////*/
-func_proto: func_sgnt parameters ';'                                                    { functions.addFunctionInTable(func); func = NULL; };
-          | ret_func_sgnt parameters ';'                                                { functions.addFunctionInTable(func); func = NULL; };
+func_proto: func_sgnt parameters ';'                                                    { 
+                                                                                            functions.addFunctionInTable(func); func = NULL; 
+                                                                                        }
+
+          | ret_func_sgnt parameters ';'                                                { 
+                                                                                            functions.addFunctionInTable(func); func = NULL; 
+                                                                                        }
           ;
 
-func_define: func_sgnt parameters scope_begin stmt_list scope_end                       { generator.endScope(@5.first_line, $1.value); func->setIsDefined(1); functions.addFunctionInTable(func); func = NULL; };
-           | ret_func_sgnt parameters scope_begin func_stmt_list scope_end              { generator.endScope(@5.first_line, $1.value); func->setIsDefined(1); functions.addFunctionInTable(func); func = NULL; };
+func_define: func_sgnt parameters scope_begin stmt_list scope_end                       { 
+                                                                                            generator.endScope(@5.first_line, $1.value); 
+                                                                                            func->setIsDefined(1); 
+                                                                                            functions.addFunctionInTable(func); 
+                                                                                            func = NULL; 
+                                                                                        }
+
+           | ret_func_sgnt parameters scope_begin func_stmt_list scope_end              { 
+                                                                                            generator.endScope(@5.first_line, $1.value); 
+                                                                                            func->setIsDefined(1); 
+                                                                                            functions.addFunctionInTable(func); 
+                                                                                            func = NULL; 
+                                                                                        }
            ;
         
 func_call: IDENTIFIER '(' expr_list ')'                                                 { /*Check function table to make sure function exists and correct parameters*/ };
@@ -275,10 +303,21 @@ for_proto: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' ';'
 	       | FOR '(' expr ';' expr ';' expr ')' ';'
            ;
 
-for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' scope_begin stmt_list scope_end                   {generator.endScope(@13.first_line, "for");}
-	        | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' scope_begin break_stmt_list scope_end           {generator.endScope(@13.first_line, "for");}
-            | FOR '(' expr ';' expr ';' expr ')' scope_begin stmt_list scope_end                                {generator.endScope(@11.first_line, "for");}
-            | FOR '(' expr ';' expr ';' expr ')' scope_begin break_stmt_list scope_end                          {generator.endScope(@11.first_line, "for");}
+for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' scope_begin stmt_list scope_end                   {
+                                                                                                                    generator.endScope(@13.first_line, "for");
+                                                                                                                }
+
+	        | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' scope_begin break_stmt_list scope_end           {
+                                                                                                                    generator.endScope(@13.first_line, "for");
+                                                                                                                }
+
+            | FOR '(' expr ';' expr ';' expr ')' scope_begin stmt_list scope_end                                {
+                                                                                                                    generator.endScope(@11.first_line, "for");
+                                                                                                                }
+
+            | FOR '(' expr ';' expr ';' expr ')' scope_begin break_stmt_list scope_end                          {
+                                                                                                                    generator.endScope(@11.first_line, "for");
+                                                                                                                }
             ;
 
 
@@ -289,12 +328,22 @@ if_define: if_scope
          | if_scope else_scope
          ;
 
-if_scope: IF '(' expr ')' scope_begin stmt_list scope_end                   {generator.endScope(@7.first_line, "if");}
-        | IF '(' expr ')' scope_begin scope_end                             {generator.endScope(@6.first_line, "if");}
+if_scope: IF '(' expr ')' scope_begin stmt_list scope_end                   {
+                                                                                generator.endScope(@7.first_line, "if");
+                                                                            }
+
+        | IF '(' expr ')' scope_begin scope_end                             {
+                                                                                generator.endScope(@6.first_line, "if");
+                                                                            }
         ;
 
-else_scope: ELSE scope_begin stmt_list scope_end                            {generator.endScope(@4.first_line, "else");}
-          | ELSE scope_begin scope_end                                      {generator.endScope(@3.first_line, "else");}
+else_scope: ELSE scope_begin stmt_list scope_end                            {
+                                                                                generator.endScope(@4.first_line, "else");
+                                                                            }
+
+          | ELSE scope_begin scope_end                                      {
+                                                                                generator.endScope(@3.first_line, "else");
+                                                                            }
           | ELSE ';'
           ;
 
@@ -305,39 +354,57 @@ enum_define: ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER ';' ;
 while_proto: WHILE '(' expr ')' ';' ;
 
 
-while_define: WHILE '(' expr ')' scope_begin stmt_list scope_end            {generator.endScope(@7.first_line, "while");}
-             | WHILE '(' expr ')' scope_begin break_stmt_list scope_end     {generator.endScope(@7.first_line, "while");}
+while_define: WHILE '(' expr ')' scope_begin stmt_list scope_end            {
+                                                                                generator.endScope(@7.first_line, "while");
+                                                                            }
+
+             | WHILE '(' expr ')' scope_begin break_stmt_list scope_end     {
+                                                                                generator.endScope(@7.first_line, "while");
+                                                                            }
              ;
 
 
 
  /*//////////////////////fifth degree /////////////////////////////// */
 
-type: TYPE_INT { $$.type = "TYPE"; $$.value = "int"; }
-      | TYPE_FLOAT { $$.type = "TYPE"; $$.value = "float"; }
-      | TYPE_CHAR { $$.type = "TYPE"; $$.value = "char"; }
-      | TYPE_BOOL { $$.type = "TYPE"; $$.value = "bool"; }
-      | TYPE_STRING { $$.type = "TYPE"; $$.value = "string"; }
+type: TYPE_INT                                                              { $$.type = "TYPE"; $$.value = "int"; }
+      | TYPE_FLOAT                                                          { $$.type = "TYPE"; $$.value = "float"; }
+      | TYPE_CHAR                                                           { $$.type = "TYPE"; $$.value = "char"; }
+      | TYPE_BOOL                                                           { $$.type = "TYPE"; $$.value = "bool"; }
+      | TYPE_STRING                                                         { $$.type = "TYPE"; $$.value = "string"; }
       ;
 
 
-func_sgnt: TYPE_VOID IDENTIFIER '('             { $$.type = "void"; $$.value = $2.value; func = new Function($2.value, "void"); };
+func_sgnt: TYPE_VOID IDENTIFIER '('                                         { 
+                                                                                $$.type = "void"; 
+                                                                                $$.value = $2.value; 
+                                                                                func = new Function($2.value, "void"); 
+                                                                            }
          ;
 
-ret_func_sgnt: type IDENTIFIER '('              { $$.type = $1.type; $$.value = $2.value; func = new Function($2.value, $1.value); };
+ret_func_sgnt: type IDENTIFIER '('                                          { 
+                                                                                $$.type = $1.type; 
+                                                                                $$.value = $2.value; 
+                                                                                func = new Function($2.value, $1.value); 
+                                                                            }
              ;
 
 
-parameters: type IDENTIFIER ')'             { func->addParameter(new Symbol($2.value, $1.value)); };
-	  | type IDENTIFIER ',' parameters      { func->addParameter(new Symbol($2.value, $1.value)); };
+parameters: type IDENTIFIER ')'                                             { 
+                                                                                func->addParameter(new Symbol($2.value, $1.value)); 
+                                                                            }
+
+	  | type IDENTIFIER ',' parameters                                      { 
+                                                                                func->addParameter(new Symbol($2.value, $1.value)); 
+                                                                            }
       | ')'
       ;
 
-rvalue: INTEGER { $$.type = "int"; $$.value = $1.value; }
-        | FLOAT { $$.type = "float"; $$.value = $1.value; }
-        | CHAR { $$.type = "char"; $$.value = $1.value; }
-        | BOOL { $$.type = "bool"; $$.value = $1.value; }
-        | STRING { $$.type = "string"; $$.value = $1.value; }
+rvalue: INTEGER                                                             { $$.type = "int"; $$.value = $1.value; }
+        | FLOAT                                                             { $$.type = "float"; $$.value = $1.value; }
+        | CHAR                                                              { $$.type = "char"; $$.value = $1.value; }
+        | BOOL                                                              { $$.type = "bool"; $$.value = $1.value; }
+        | STRING                                                            { $$.type = "string"; $$.value = $1.value; }
         ;
 
 enum_list: IDENTIFIER 
@@ -346,11 +413,21 @@ enum_list: IDENTIFIER
            | IDENTIFIER ',' enum_list
            ;
 
-case_list:  case_list CASE rvalue case_scope_begin break_stmt_list      { generator.endScope(@5.first_line, "case"); table = scope.removeScope(); }
-            | CASE rvalue case_scope_begin break_stmt_list              { generator.endScope(@4.first_line, "case"); table = scope.removeScope(); }
+case_list:  case_list CASE rvalue case_scope_begin break_stmt_list          { 
+                                                                               generator.endScope(@5.first_line, "case"); 
+                                                                               table = scope.removeScope();
+                                                                            }
+
+            | CASE rvalue case_scope_begin break_stmt_list                  { 
+                                                                                generator.endScope(@4.first_line, "case"); 
+                                                                                table = scope.removeScope();
+                                                                            }
             ;
 
-case_default: DEFAULT case_scope_begin break_stmt_list                  { generator.endScope(@3.first_line, "case"); table = scope.removeScope(); }
+case_default: DEFAULT case_scope_begin break_stmt_list                      { 
+                                                                                generator.endScope(@3.first_line, "case"); 
+                                                                                table = scope.removeScope(); 
+                                                                            }
             ;
             
 expr_list: expr
@@ -359,13 +436,13 @@ expr_list: expr
 
 expr: rvalue { $$ = $1; }
      | IDENTIFIER               { 
-                                    SymbolTable* firstTable = scope.getSymbolTableFromStack($1.value);
-                                    if (firstTable != NULL)
+                                    SymbolTable* table = scope.getSymbolTableFromStack($1.value);
+                                    if (table != NULL)
                                     {
-                                        Symbol* sym = firstTable->getSymbolObjectbyName($1.value);
+                                        Symbol* sym = table->getSymbolObjectbyName($1.value);
                                         sym->setIsUsed(1);
-                                        $$.type =firstTable->getSymbolTypeByNameInTable($1.value);
-                                        $$.value = firstTable->getSymbolByNameInTable($1.value);
+                                        $$.type =table->getSymbolTypeByNameInTable($1.value);
+                                        $$.value = table->getSymbolByNameInTable($1.value);
                                         if(!sym->checkInitialisation()) 
                                         { 
                                             printf("warning: Variable not initialized\n");
@@ -376,30 +453,90 @@ expr: rvalue { $$ = $1; }
                                         printf("Error: Unidentified variable\n");
                                     }
                                 }
-     | expr PLUS expr           {valid.checkType($1.type, $3.type, @1.first_line);}
-     | expr MINUS expr          {valid.checkType($1.type, $3.type, @1.first_line);}
-     | expr MULT expr           {valid.checkType($1.type, $3.type, @1.first_line);}
-     | expr DIV expr            {valid.checkType($1.type, $3.type, @1.first_line);}
-     | expr POWER expr          {valid.checkType($1.type, $3.type, @1.first_line);}
-     | expr MODULE expr         {valid.checkType($1.type, $3.type, @1.first_line);}
-     | expr EQU_EQU expr        {valid.checkType($1.type, $3.type, @1.first_line);}
-     | expr NOT_EQU expr        {valid.checkType($1.type, $3.type, @1.first_line);}
-     | expr MORE_OR_EQU expr    {valid.checkType($1.type, $3.type, @1.first_line);}
-     | expr LESS_OR_EQU expr    {valid.checkType($1.type, $3.type, @1.first_line);}
-     | expr MORE expr           {valid.checkType($1.type, $3.type, @1.first_line);}
-     | expr LESS expr           {valid.checkType($1.type, $3.type, @1.first_line);}
-     | expr AND expr            {valid.checkType($1.type, $3.type, @1.first_line);}
-     | expr OR expr             {valid.checkType($1.type, $3.type, @1.first_line);}
+
+     | expr PLUS expr           {
+                                    valid.checkType($1.type, $3.type, @1.first_line);
+                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                }
+
+     | expr MINUS expr          {
+                                    valid.checkType($1.type, $3.type, @1.first_line);
+                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+
+                                }
+
+     | expr MULT expr           {
+                                    valid.checkType($1.type, $3.type, @1.first_line);
+                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                }
+
+     | expr DIV expr            {
+                                    valid.checkType($1.type, $3.type, @1.first_line);
+                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                }
+
+     | expr POWER expr          {
+                                    valid.checkType($1.type, $3.type, @1.first_line);
+                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                }
+
+     | expr MODULE expr         {
+                                    valid.checkType($1.type, $3.type, @1.first_line);
+                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                }
+
+     | expr EQU_EQU expr        {
+                                    valid.checkType($1.type, $3.type, @1.first_line);
+                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                }
+
+     | expr NOT_EQU expr        {
+                                    valid.checkType($1.type, $3.type, @1.first_line);
+                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                }
+
+     | expr MORE_OR_EQU expr    {
+                                    valid.checkType($1.type, $3.type, @1.first_line);
+                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                }
+
+     | expr LESS_OR_EQU expr    {
+                                    valid.checkType($1.type, $3.type, @1.first_line);
+                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                }
+
+     | expr MORE expr           {
+                                    valid.checkType($1.type, $3.type, @1.first_line);
+                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                }
+
+     | expr LESS expr           {
+                                    valid.checkType($1.type, $3.type, @1.first_line);
+                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                }
+
+     | expr AND expr            {
+                                    valid.checkType($1.type, $3.type, @1.first_line);
+                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                }
+
+     | expr OR expr             {
+                                    valid.checkType($1.type, $3.type, @1.first_line);
+                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                }
+
      | expr INC                 {
                                     if (!($1.type == "int") || !($1.type == "float")){
                                         { printf("Error: Cant increment variable of this type\n");}
                                     }
                                 }
+
      | expr DEC                 {
                                     if (!($1.type == "int") || !($1.type == "float")){
                                         { printf("Error: Cant decrement variable of this type\n");}
                                     }
                                 }
+
      | NOT expr                 {
                                     if (!($2.type == "int") || !($2.type == "bool")){
                                         { printf("Error: Cant negate variable of this type\n");}
