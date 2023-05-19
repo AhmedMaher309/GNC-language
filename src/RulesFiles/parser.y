@@ -185,9 +185,12 @@ genn_stmt:  type IDENTIFIER ';'                         {    printf("hello \n");
                                                             if (firstTable != NULL)
                                                             {
                                                                 Symbol* sym = firstTable->getSymbolObjectbyName($1.value);
-                                                                if(sym->getVarType()==$3.type || (sym->getVarType()=="int" && $3.type=="float") || (sym->getVarType()=="float" && $3.type=="int")) 
+                                                                if((sym->getVarType()==$3.type || (sym->getVarType()=="int" && $3.type=="float") || (sym->getVarType()=="float" && $3.type=="int")) && (!sym->checkConstant())) 
                                                                 {
                                                                     firstTable->setSymbolByNameInTable($1.value,valid.TypeConversion(sym->getVarType(), $3.type, $3.value));
+                                                                }
+                                                                else if (sym->checkConstant()){
+                                                                     printf("ERROR! constant variable cannot be reassigned\n");
                                                                 }
                                                                 else if(  strcmp($3.type, "ID") != 0 ) // condition to account for undefined variables
                                                                 {

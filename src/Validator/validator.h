@@ -11,6 +11,7 @@ private:
 
 public:
     string toInt(string value);
+    bool isInt(string value);
     bool checkFloat(string value);
     bool checkString(string value);
     bool checkChar(string value);

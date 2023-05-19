@@ -66,10 +66,10 @@ void SymbolTable::removeSymbolFromTable(Symbol *symbol)
 void SymbolTable::printSymbolTable()
 {
     cout << endl;
-    cout << left << setw(10) << "variable name" << setw(10) << "variable type" << setw(10) << "variable value" << setw(10) << "is constant" << setw(10) << "is initialised" << setw(10)<< "is Used"<< setw(10) << "memory location" << endl;
+    cout << left << setw(15) << "variable name" << setw(15) << "variable type" << setw(15) << "variable value" << setw(15) << "is constant" << setw(15) << "is initialised" << setw(15) << "is Used" << setw(15) << "memory location" << endl;
     for (auto x : symbolTable)
     {
-        cout << left << setw(10) << x.first << setw(10) << x.second->getVarType() << setw(10) << x.second->getValue() << setw(10) << x.second->checkConstant() << setw(10) << x.second->checkInitialisation() << setw(10) << x.second->checkUsed() <<setw(10) << x.second << endl;
+        cout << left << setw(15) << x.first << setw(15) << x.second->getVarType() << setw(15) << x.second->getValue() << setw(15) << x.second->checkConstant() << setw(15) << x.second->checkInitialisation() << setw(15) << x.second->checkUsed() << setw(15) << x.second << endl;
     }
     cout << endl
          << endl;
