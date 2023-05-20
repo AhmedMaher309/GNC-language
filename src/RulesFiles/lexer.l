@@ -25,7 +25,7 @@ TYPE_STRING "string"
 TYPE_VOID   "void"
 IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*
 INTEGER     [-+]?[0-9]+
-FLOAT       [-+]?[0-9]+.[0-9]+
+FLOAT       [-+]?[0-9]+\.[0-9]+
 BOOL        true|false
 CHAR        \'.?\'
 STRING      \".*\"
