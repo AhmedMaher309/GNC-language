@@ -26,8 +26,11 @@ public:
     void print();
 
     std::string getName();
+    const char *getNameAsCStr();
     std::string getVarType();
+    const char *getVarTypeAsCStr();
     std::string getValue();
+    const char *getValueAsCStr();
     bool checkConstant();
     bool checkInitialisation();
     bool checkUsed();

@@ -1,32 +1,30 @@
+#pragma once
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 #include <stack>
 #include <string>
 
 #include "quad.h"
-
-struct Scope
-{
-    std::string name;
-    int sLine;
-    int eLine;
-
-    Scope(int _sLine)
-    {
-        sLine = _sLine;
-    }
-};
+#include "../SymbolTable/symbol.h"
 
 class QuadGenerator
 {
 private:
-    std::stack<Scope*> scopes;
-    std::vector<Quadruple*> quadList;
+    std::vector<Quadruple*>* quads;
+    std::stack<std::vector<Quadruple*>*> scopes;
+    std::unordered_map<Symbol*, std::string> assignments;
+    std::unordered_map<std::string, std::string> temps;
 
 public:
     static int count;
-    void startScope(int sLine);
-    void endScope(int eLine, std::string name);
+    QuadGenerator();
+    void startScope();
+    void endScope(std::string type);
+    const char *addAssignment(Symbol* sym);
+    const char *getAssignment(Symbol* sym);
+    const char *addTemp(std::string expr1, std::string op, std::string expr2);
+    void clearTemps();
     void addQuad(std::string operation, std::string operand1, std::string operand2, std::string destination);
     void printQuads();
 };

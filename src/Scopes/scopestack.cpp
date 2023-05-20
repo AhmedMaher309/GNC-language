@@ -13,6 +13,7 @@ ScopeStack::ScopeStack()
     globals->symbolTable = new SymbolTable();
     globals->parent = NULL;
     globals->name = "L0";
+    globals->type = "Globals";
     scopeStack = globals;
 }
 
@@ -28,8 +29,9 @@ SymbolTable* ScopeStack::addScope()
     return scopeStack->symbolTable;
 }
 
-SymbolTable* ScopeStack::removeScope()
+SymbolTable* ScopeStack::removeScope(std::string type)
 {
+    scopeStack->type = type;
     scopeStack = scopeStack->parent;
     return scopeStack->symbolTable;
 }
@@ -62,7 +64,7 @@ void ScopeStack::printSymbolTables(ScopeNode* node, int level)
     }
 
     cout << endl;
-    cout << right << setfill('=') << setw(2*(level+1)) << "=>" << left << setfill(' ') << node->name << endl;
+    cout << right << setfill('=') << setw(2*(level+1)) << "=>" << left << setfill(' ') << node->name << "(" << node->type << ")" << endl;
     cout << left << setw(2*(level+1)) << "" << setfill('=') << setw(node->name.size()) << "" << setfill(' ') << endl;
 
     node->symbolTable->printSymbolTable();

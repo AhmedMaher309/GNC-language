@@ -164,7 +164,19 @@ break_stmt_list: stmt_list BREAK ';'
  /*/////////////////// third degree /////////////////////////////*/
 
 genn_stmt:  type IDENTIFIER ';'                         {
-                                                            table->addSymbolInTable(new Symbol($2.value,$1.value));
+                                                            Symbol* sym = table->getSymbolObjectbyName($2.value);
+                                                            if (sym == NULL)
+                                                            {
+                                                                Symbol* sym = new Symbol($2.value,$1.value);
+                                                                table->addSymbolInTable(sym); 
+
+                                                                const char* name = generator.addAssignment(sym);
+                                                                generator.addQuad("ALLOC",$2.value,"",name);
+                                                            }
+                                                            else
+                                                            {
+                                                                printf("Error [%d]: Variable is defined before\n", @1.first_line);
+                                                            }
                                                         }
 
            | type IDENTIFIER EQU func_call ';'
@@ -172,16 +184,30 @@ genn_stmt:  type IDENTIFIER ';'                         {
            | IDENTIFIER EQU func_call ';'
 
            | CONSTANT type IDENTIFIER EQU rvalue ';'    {
-                                                            Symbol* sym = new Symbol($3.value, $2.value);
-                                                            sym->setIsInitialised(1); 
-                                                            sym->setIsConstant(1);
-                                                            if(valid.checkType(sym->getVarType(), $5.type, @1.first_line)){
-                                                                table->addSymbolInTable(sym);
-                                                                table->modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), $5.type, $5.value));
-                                                            }
-                                                            else{
-                                                                printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                                            
 
+                                                            Symbol* sym = table->getSymbolObjectbyName($3.value);
+                                                            if (sym == NULL)
+                                                            {
+                                                                Symbol* sym = new Symbol($3.value, $2.value);
+                                                                sym->setIsInitialised(1); 
+                                                                sym->setIsConstant(1);
+                                                                if(valid.checkType(sym->getVarType(), $5.type, @1.first_line)){
+                                                                    table->addSymbolInTable(sym);
+                                                                    table->modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), $5.type, $5.value));
+
+                                                                        const char* name = generator.addAssignment(sym);
+                                                                        generator.addQuad("CONST_ALLOC",$3.value,"",name);
+                                                                        generator.addQuad("ASSIGN",$5.value,"",name);
+                                                                }
+                                                                else
+                                                                {
+                                                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                printf("Error [%d]: Variable is defined before\n", @1.first_line);
                                                             }
                                                         }
 
@@ -190,15 +216,44 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                             if (table != NULL)
                                                             {
                                                                 Symbol* sym = table->getSymbolObjectbyName($1.value);
-                                                                if(sym->checkConstant()){
-                                                                    printf("Error [%d]: Constant cannot be reassigned\n", @1.first_line);
+
+                                                                const char* exprValue = $3.value;
+                                                                const char* exprType = $3.type;
+
+                                                                if (strcmp(exprType,"ID") == 0)
+                                                                {
+                                                                    SymbolTable* exprtable = scope.getSymbolTableFromStack($3.value);
+                                                                    if (exprtable != NULL)
+                                                                    {
+                                                                        Symbol* exprsym = exprtable->getSymbolObjectbyName($3.value);
+                                                                        exprValue = exprsym->getValueAsCStr();
+                                                                        exprType = exprsym->getVarTypeAsCStr();
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        printf("Error [%d]: Unidentified Variable\n", @1.first_line);
+                                                                    }
                                                                 }
-                                                                else if(valid.checkType(sym->getVarType(), $3.type, @1.first_line)){
-                                                                    table->modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), $3.type, $3.value));
+
+                                                                if(strcmp(exprType,"ID") != 0)
+                                                                {
+                                                                    if(sym->checkConstant()){
+                                                                        printf("Error [%d]: Constant cannot be reassigned\n", @1.first_line);
+                                                                    }
+                                                                    else if(valid.checkType(sym->getVarType(), exprType, @1.first_line)){
+                                                                        table->modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), exprType, exprValue));
+                                                                        generator.addQuad("ASSIGN",exprValue,"",generator.getAssignment(sym));
+                                                                        generator.clearTemps();
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                                                    }
                                                                 }
-                                                                else{
-                                                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
-                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                printf("Error [%d]: Unidentified Variable\n", @1.first_line);
                                                             }
                                                         }
 
@@ -207,16 +262,44 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                             if (sym == NULL)
                                                             {
                                                                 Symbol* sym = new Symbol($2.value,$1.value);
-                                                                if (valid.checkType(sym->getVarType(), $4.type, @1.first_line)) {
-                                                                    sym->setIsInitialised(1); 
-                                                                    table->addSymbolInTable(sym); 
-                                                                    table->modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), $4.type, $4.value));
-                                                                    }                                                 
-                                                                else{
-                                                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+
+                                                                const char* exprValue = $4.value;
+                                                                const char* exprType = $4.type;
+
+                                                                if (strcmp(exprType,"ID") == 0)
+                                                                {
+                                                                    SymbolTable* exprtable = scope.getSymbolTableFromStack($4.value);
+                                                                    if (exprtable != NULL)
+                                                                    {
+                                                                        Symbol* exprsym = exprtable->getSymbolObjectbyName($4.value);
+                                                                        exprValue = exprsym->getValueAsCStr();
+                                                                        exprType = exprsym->getVarTypeAsCStr();
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        printf("Error [%d]: Unidentified Variable\n", @1.first_line);
+                                                                    }
+                                                                }
+
+                                                                if (strcmp(exprType,"ID") != 0)
+                                                                {
+                                                                    if (valid.checkType(sym->getVarType(), exprType, @1.first_line)) {
+                                                                        sym->setIsInitialised(1); 
+                                                                        table->addSymbolInTable(sym); 
+                                                                        table->modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), exprType, exprValue));
+
+                                                                        const char* name = generator.addAssignment(sym);
+                                                                        generator.addQuad("ALLOC",$2.value,"",name);
+                                                                        generator.addQuad("ASSIGN",exprValue,"",name);
+                                                                        generator.clearTemps();
+                                                                        }                                                 
+                                                                    else{
+                                                                        printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                                                    }
                                                                 }
                                                             }
-                                                            else{
+                                                            else
+                                                            {
                                                                    printf("Error [%d]: Variable is defined before\n", @1.first_line);
                                                             }
                                                         }
@@ -252,20 +335,24 @@ while_stmt: while_proto
            ;
            
 repeat_stmt: REPEAT scope_begin stmt_list scope_end UNTIL '(' expr ')' ';'              { 
-                                                                                            generator.endScope(@4.first_line, "repeat"); 
+                                                                                            table = scope.removeScope("repeat");
+                                                                                            generator.endScope("repeat"); 
                                                                                         }
 
                   | REPEAT scope_begin scope_end UNTIL '(' expr ')' ';'                 { 
-                                                                                            generator.endScope(@4.first_line, "repeat"); 
+                                                                                            table = scope.removeScope("repeat");
+                                                                                            generator.endScope("repeat"); 
                                                                                         }
                   ;
                   
 switch_stmt:   SWITCH '(' IDENTIFIER ')' scope_begin case_list case_default scope_end   { 
-                                                                                            generator.endScope(@8.first_line, "switch"); 
+                                                                                            table = scope.removeScope("switch");
+                                                                                            generator.endScope("switch"); 
                                                                                         }
 
                 | SWITCH '(' IDENTIFIER ')' scope_begin case_default scope_end          { 
-                                                                                            generator.endScope(@7.first_line, "switch"); 
+                                                                                            table = scope.removeScope("switch");
+                                                                                            generator.endScope("switch"); 
                                                                                         }
                 ;
 
@@ -281,14 +368,16 @@ func_proto: func_sgnt parameters ';'                                            
           ;
 
 func_define: func_sgnt parameters scope_begin stmt_list scope_end                       { 
-                                                                                            generator.endScope(@5.first_line, $1.value); 
+                                                                                            table = scope.removeScope($1.value);
+                                                                                            generator.endScope($1.value); 
                                                                                             func->setIsDefined(1); 
                                                                                             functions.addFunctionInTable(func); 
                                                                                             func = NULL; 
                                                                                         }
 
            | ret_func_sgnt parameters scope_begin func_stmt_list scope_end              { 
-                                                                                            generator.endScope(@5.first_line, $1.value); 
+                                                                                            table = scope.removeScope($1.value);
+                                                                                            generator.endScope($1.value); 
                                                                                             func->setIsDefined(1); 
                                                                                             functions.addFunctionInTable(func); 
                                                                                             func = NULL; 
@@ -304,19 +393,23 @@ for_proto: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' ';'
            ;
 
 for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' scope_begin stmt_list scope_end                   {
-                                                                                                                    generator.endScope(@13.first_line, "for");
+                                                                                                                    table = scope.removeScope("for");
+                                                                                                                    generator.endScope("for");
                                                                                                                 }
 
 	        | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' scope_begin break_stmt_list scope_end           {
-                                                                                                                    generator.endScope(@13.first_line, "for");
+                                                                                                                    table = scope.removeScope("for");
+                                                                                                                    generator.endScope("for");
                                                                                                                 }
 
             | FOR '(' expr ';' expr ';' expr ')' scope_begin stmt_list scope_end                                {
-                                                                                                                    generator.endScope(@11.first_line, "for");
+                                                                                                                    table = scope.removeScope("for");
+                                                                                                                    generator.endScope("for");
                                                                                                                 }
 
             | FOR '(' expr ';' expr ';' expr ')' scope_begin break_stmt_list scope_end                          {
-                                                                                                                    generator.endScope(@11.first_line, "for");
+                                                                                                                    table = scope.removeScope("for");
+                                                                                                                    generator.endScope("for");
                                                                                                                 }
             ;
 
@@ -329,37 +422,48 @@ if_define: if_scope
          ;
 
 if_scope: IF '(' expr ')' scope_begin stmt_list scope_end                   {
-                                                                                generator.endScope(@7.first_line, "if");
+                                                                                table = scope.removeScope("if");
+                                                                                generator.endScope("if");
                                                                             }
 
         | IF '(' expr ')' scope_begin scope_end                             {
-                                                                                generator.endScope(@6.first_line, "if");
+                                                                                table = scope.removeScope("if");
+                                                                                generator.endScope("if");
                                                                             }
         ;
 
 else_scope: ELSE scope_begin stmt_list scope_end                            {
-                                                                                generator.endScope(@4.first_line, "else");
+                                                                                table = scope.removeScope("else");
+                                                                                generator.endScope("else");
                                                                             }
 
           | ELSE scope_begin scope_end                                      {
-                                                                                generator.endScope(@3.first_line, "else");
+                                                                                table = scope.removeScope("else");
+                                                                                generator.endScope("else");
                                                                             }
           | ELSE ';'
           ;
 
-enum_declare: ENUM IDENTIFIER scope_begin enum_list scope_end ';' ;         /*{TODO:ENUM SCOPES}*/
+enum_declare: ENUM IDENTIFIER scope_begin enum_list scope_end ';'           {
+                                                                                table = scope.removeScope("enum");
+                                                                                generator.endScope("enum");
+                                                                            }
+            ;
 
-enum_define: ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER ';' ;
+enum_define: ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER ';' 
+           ;
 
 while_proto: WHILE '(' expr ')' ';' ;
 
 
 while_define: WHILE '(' expr ')' scope_begin stmt_list scope_end            {
-                                                                                generator.endScope(@7.first_line, "while");
+                                                                                table = scope.removeScope("while");
+                                                                                generator.endScope("while");
                                                                             }
 
              | WHILE '(' expr ')' scope_begin break_stmt_list scope_end     {
-                                                                                generator.endScope(@7.first_line, "while");
+                                                                                table = scope.removeScope("while");
+                                                                                generator.endScope("while");                                                                            
                                                                             }
              ;
 
@@ -414,19 +518,20 @@ enum_list: IDENTIFIER
            ;
 
 case_list:  case_list CASE rvalue case_scope_begin break_stmt_list          { 
-                                                                               generator.endScope(@5.first_line, "case"); 
-                                                                               table = scope.removeScope();
+                                                                                table = scope.removeScope("case");
+                                                                                generator.endScope("case"); 
+
                                                                             }
 
             | CASE rvalue case_scope_begin break_stmt_list                  { 
-                                                                                generator.endScope(@4.first_line, "case"); 
-                                                                                table = scope.removeScope();
+                                                                                table = scope.removeScope("case");
+                                                                                generator.endScope("case"); 
                                                                             }
             ;
 
 case_default: DEFAULT case_scope_begin break_stmt_list                      { 
-                                                                                generator.endScope(@3.first_line, "case"); 
-                                                                                table = scope.removeScope(); 
+                                                                                table = scope.removeScope("case");
+                                                                                generator.endScope("case"); 
                                                                             }
             ;
             
@@ -434,15 +539,16 @@ expr_list: expr
          | expr ',' expr_list
          ;
 
-expr: rvalue { $$ = $1; }
+expr: rvalue                    { 
+                                    $$ = $1; 
+                                }
+
      | IDENTIFIER               { 
                                     SymbolTable* table = scope.getSymbolTableFromStack($1.value);
                                     if (table != NULL)
                                     {
                                         Symbol* sym = table->getSymbolObjectbyName($1.value);
                                         sym->setIsUsed(1);
-                                        $$.type =table->getSymbolTypeByNameInTable($1.value);
-                                        $$.value = table->getSymbolByNameInTable($1.value);
                                         if(!sym->checkInitialisation()) 
                                         { 
                                             printf("warning: Variable not initialized\n");
@@ -452,100 +558,317 @@ expr: rvalue { $$ = $1; }
                                     {
                                         printf("Error: Unidentified variable\n");
                                     }
+                                    $$ = $1; 
                                 }
 
      | expr PLUS expr           {
-                                    valid.checkType($1.type, $3.type, @1.first_line);
-                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    const char* name1 = $1.value;
+                                    const char* type1 = $1.type;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = $3.value;
+                                    const char* type2 = $3.type;
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    
+                                    if (!(valid.checkType(type1, type2, @1.first_line)))
+                                    {
+                                        printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    }
+                                    
+                                    const char* name = generator.addTemp(name1 , "+" , name2);
+                                    generator.addQuad("ADD", name1, name2, name);
+                                    $$.value = name; 
+                                    $$.type = type1;
                                 }
 
      | expr MINUS expr          {
-                                    valid.checkType($1.type, $3.type, @1.first_line);
-                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
-
+                                    const char* name1 = $1.value;
+                                    const char* type1 = $1.type;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = $3.value;
+                                    const char* type2 = $3.type;
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    
+                                    if (!(valid.checkType(type1, type2, @1.first_line)))
+                                    {
+                                        printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    }
+                                    
+                                    const char* name = generator.addTemp(name1 , "-" , name2);
+                                    generator.addQuad("SUB", name1, name2, name);
+                                    $$.value = name; 
+                                    $$.type = type1;
                                 }
 
      | expr MULT expr           {
-                                    valid.checkType($1.type, $3.type, @1.first_line);
-                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    const char* name1 = $1.value;
+                                    const char* type1 = $1.type;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = $3.value;
+                                    const char* type2 = $3.type;
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    
+                                    if (!(valid.checkType(type1, type2, @1.first_line)))
+                                    {
+                                        printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    }
+                                    
+                                    const char* name = generator.addTemp(name1 , "*" , name2);
+                                    generator.addQuad("MUL", name1, name2, name);
+                                    $$.value = name; 
+                                    $$.type = type1;
                                 }
 
      | expr DIV expr            {
-                                    valid.checkType($1.type, $3.type, @1.first_line);
-                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    const char* name1 = $1.value;
+                                    const char* type1 = $1.type;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = $3.value;
+                                    const char* type2 = $3.type;
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    
+                                    if (!(valid.checkType(type1, type2, @1.first_line)))
+                                    {
+                                        printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    }
+                                    
+                                    const char* name = generator.addTemp(name1 , "/" , name2);
+                                    generator.addQuad("DIV", name1, name2, name);
+                                    $$.value = name; 
+                                    $$.type = type1;
                                 }
 
      | expr POWER expr          {
-                                    valid.checkType($1.type, $3.type, @1.first_line);
-                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    const char* name1 = $1.value;
+                                    const char* type1 = $1.type;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = $3.value;
+                                    const char* type2 = $3.type;
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    
+                                    if (!(valid.checkType(type1, type2, @1.first_line)))
+                                    {
+                                        printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    }
+                                    
+                                    const char* name = generator.addTemp(name1 , "^" , name2);
+                                    generator.addQuad("POW", name1, name2, name);
+                                    $$.value = name; 
+                                    $$.type = type1;                                 
                                 }
 
      | expr MODULE expr         {
-                                    valid.checkType($1.type, $3.type, @1.first_line);
-                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    const char* name1 = $1.value;
+                                    const char* type1 = $1.type;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = $3.value;
+                                    const char* type2 = $3.type;
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    
+                                    if (!(valid.checkType(type1, type2, @1.first_line)))
+                                    {
+                                        printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    }
+                                    
+                                    const char* name = generator.addTemp(name1 , "%" , name2);
+                                    generator.addQuad("MOD", name1, name2, name);
+                                    $$.value = name; 
+                                    $$.type = type1;
                                 }
 
      | expr EQU_EQU expr        {
-                                    valid.checkType($1.type, $3.type, @1.first_line);
-                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    const char* name1 = $1.value;
+                                    const char* type1 = $1.type;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = $3.value;
+                                    const char* type2 = $3.type;
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    
+                                    if (!(valid.checkType(type1, type2, @1.first_line)))
+                                    {
+                                        printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    }
+                                    
+                                    const char* name = generator.addTemp(name1 , "==" , name2);
+                                    generator.addQuad("EQU", name1, name2, name);
+                                    $$.value = name;  
+                                    $$.type = "bool";
                                 }
 
      | expr NOT_EQU expr        {
-                                    valid.checkType($1.type, $3.type, @1.first_line);
-                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    const char* name1 = $1.value;
+                                    const char* type1 = $1.type;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = $3.value;
+                                    const char* type2 = $3.type;
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    
+                                    if (!(valid.checkType(type1, type2, @1.first_line)))
+                                    {
+                                        printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    }
+                                    
+                                    const char* name = generator.addTemp(name1 , "!=" , name2);
+                                    generator.addQuad("NOTEQU", name1, name2, name);
+                                    $$.value = name;  
+                                    $$.type = "bool";
                                 }
 
      | expr MORE_OR_EQU expr    {
-                                    valid.checkType($1.type, $3.type, @1.first_line);
-                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    const char* name1 = $1.value;
+                                    const char* type1 = $1.type;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = $3.value;
+                                    const char* type2 = $3.type;
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    
+                                    if (!(valid.checkType(type1, type2, @1.first_line)))
+                                    {
+                                        printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    }
+                                    
+                                    const char* name = generator.addTemp(name1 , ">=" , name2);
+                                    generator.addQuad("MOREEQU", name1, name2, name);
+                                    $$.value = name;  
+                                    $$.type = "bool";
                                 }
 
      | expr LESS_OR_EQU expr    {
-                                    valid.checkType($1.type, $3.type, @1.first_line);
-                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    const char* name1 = $1.value;
+                                    const char* type1 = $1.type;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = $3.value;
+                                    const char* type2 = $3.type;
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    
+                                    if (!(valid.checkType(type1, type2, @1.first_line)))
+                                    {
+                                        printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    }
+                                    
+                                    const char* name = generator.addTemp(name1 , "<=" , name2);
+                                    generator.addQuad("LESSEQU", name1, name2, name);
+                                    $$.value = name; 
+                                    $$.type = "bool";
                                 }
 
      | expr MORE expr           {
-                                    valid.checkType($1.type, $3.type, @1.first_line);
-                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    const char* name1 = $1.value;
+                                    const char* type1 = $1.type;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = $3.value;
+                                    const char* type2 = $3.type;
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    
+                                    if (!(valid.checkType(type1, type2, @1.first_line)))
+                                    {
+                                        printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    }
+                                    
+                                    const char* name = generator.addTemp(name1 , ">" , name2);
+                                    generator.addQuad("MORE", name1, name2, name);
+                                    $$.value = name; 
+                                    $$.type = "bool";
                                 }
 
      | expr LESS expr           {
-                                    valid.checkType($1.type, $3.type, @1.first_line);
-                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    const char* name1 = $1.value;
+                                    const char* type1 = $1.type;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = $3.value;
+                                    const char* type2 = $3.type;
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    
+                                    if (!(valid.checkType(type1, type2, @1.first_line)))
+                                    {
+                                        printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    }
+                                    
+                                    const char* name = generator.addTemp(name1 , "<" , name2);
+                                    generator.addQuad("LESS", name1, name2, name);
+                                    $$.value = name; 
+                                    $$.type = "bool";
                                 }
 
      | expr AND expr            {
-                                    valid.checkType($1.type, $3.type, @1.first_line);
-                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    const char* name1 = $1.value;
+                                    const char* type1 = $1.type;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = $3.value;
+                                    const char* type2 = $3.type;
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    
+                                    if (!(valid.checkType(type1, type2, @1.first_line)))
+                                    {
+                                        printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    }
+                                    
+                                    const char* name = generator.addTemp(name1 , "&&" , name2);
+                                    generator.addQuad("AND", name1, name2, name);
+                                    $$.value = name;  
+                                    $$.type = type1;
                                 }
 
      | expr OR expr             {
-                                    valid.checkType($1.type, $3.type, @1.first_line);
-                                    printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    const char* name1 = $1.value;
+                                    const char* type1 = $1.type;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = $3.value;
+                                    const char* type2 = $3.type;
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    
+                                    if (!(valid.checkType(type1, type2, @1.first_line)))
+                                    {
+                                        printf("Error [%d]: Type mismatch\n", @1.first_line);
+                                    }
+                                    
+                                    const char* name = generator.addTemp(name1 , "||" , name2);
+                                    generator.addQuad("OR", name1, name2, name);
+                                    $$.value = name; 
+                                    $$.type = type1;
                                 }
 
      | expr INC                 {
-                                    if (!($1.type == "int") || !($1.type == "float")){
+                                    const char* name1 = $1.value;
+                                    const char* type1 = $1.type;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type1, "int") != 0 && strcmp(type1, "float") != 0){
                                         { printf("Error: Cant increment variable of this type\n");}
                                     }
+
+                                    const char* name = generator.addTemp(name1 , "++", "");
+                                    generator.addQuad("INC", name1, "", name);
+                                    $$.value = name; 
+                                    $$.type = type1;
                                 }
 
      | expr DEC                 {
-                                    if (!($1.type == "int") || !($1.type == "float")){
+                                    const char* name1 = $1.value;
+                                    const char* type1 = $1.type;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type1, "int") != 0 && strcmp(type1, "float") != 0){
                                         { printf("Error: Cant decrement variable of this type\n");}
                                     }
+                                    const char* name = generator.addTemp(name1 , "--", "");
+                                    generator.addQuad("DEC", name1, "", name);
+                                    $$.value = name; 
+                                    $$.type = type1;
                                 }
 
      | NOT expr                 {
-                                    if (!($2.type == "int") || !($2.type == "bool")){
-                                        { printf("Error: Cant negate variable of this type\n");}
+                                    const char* name1 = $2.value;
+                                    const char* type1 = $2.type;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($2.value)->getSymbolObjectbyName($2.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type1, "int") != 0 && strcmp(type1, "bool") != 0){
+                                        { printf("Error: Cant invert variable of this type\n");}
                                     }
+                                    const char* name = generator.addTemp("!" , name1, "");
+                                    generator.addQuad("NOT", name1, "", name);
+                                    $$.value = name; 
+                                    $$.type = type1;
                                 }
      ;
 
-scope_begin: '{'            {
-                                generator.startScope(@1.first_line);
+scope_begin: '{'            {                            
                                 table = scope.addScope();
                                 if(func != NULL) 
                                 {
@@ -554,17 +877,18 @@ scope_begin: '{'            {
                                         table->addSymbolInTable(func->getParameter(i));
                                     }
                                 }
+                                generator.startScope();
                             }
              ;
 
 scope_end: '}'              {
                                 table->checkSymbolTable(); 
-                                table = scope.removeScope();
                             }
            ;
 
-case_scope_begin: ':'       {   generator.startScope(@1.first_line);
+case_scope_begin: ':'       {   
                                 table = scope.addScope();
+                                generator.startScope();
                             }
                 ;
 
