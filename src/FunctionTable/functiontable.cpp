@@ -9,7 +9,10 @@ using namespace std;
 
 void FunctionTable::addFunctionInTable(Function *function)
 {
-    functionTable[function->getName()] = function;
+    if(checkExistFunction(function->getName()))
+    {
+        functionTable[function->getName()] = function;
+    }
 }
 
 void FunctionTable::setFunctionByNameInTable(std::string functionname, bool defined)
@@ -57,4 +60,14 @@ void FunctionTable::printFunctionTable()
     }
     cout << endl
          << endl;
+}
+
+bool FunctionTable::checkExistFunction(std::string functionName){
+    for (auto x : functionTable){
+        if (x.first == functionName){
+            cout<<"error, function with the same name already exists"<<endl;
+            return false;
+        }
+    }
+    return true;
 }

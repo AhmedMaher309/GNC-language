@@ -17,4 +17,5 @@ public:
     Function *getFunctionObjectbyName(std::string functionname);
     void removeFunctionFromTable(Function *function);
     void printFunctionTable();
+    bool checkExistFunction(std::string functionName);
 };

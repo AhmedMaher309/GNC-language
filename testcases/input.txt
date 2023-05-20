@@ -21,3 +21,15 @@ string name(int index)
 {
     return s;
 }
+
+
+string name(string index)
+{
+    return index;
+}
+
+
+bool name(string index)
+{
+    return true;
+}
