@@ -76,7 +76,7 @@ bool FunctionTable::checkExistFunction(std::string functionName){
 void FunctionTable::printFunctionTableToFile()
 {
     // Open the file for writing
-    ofstream outputFile("FunctionTable.txt");
+    ofstream outputFile("compiling_results/FunctionTable.txt");
 
     // Check if the file was opened successfully
     if (!outputFile)

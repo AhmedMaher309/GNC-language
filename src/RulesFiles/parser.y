@@ -266,7 +266,7 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                                 printf("Error [%d]: Unidentified Variable\n", @1.first_line);
                                                             }
                                                             generator.clearTemps();
-                                                            printf("clear\n");
+                                                            //printf("clear\n");
                                                         }
 
            | type IDENTIFIER EQU expr ';'               { 
@@ -314,7 +314,7 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                                    printf("Error [%d]: Variable is defined before\n", @1.first_line);
                                                             }
                                                             generator.clearTemps();
-                                                            printf("clear\n");
+                                                            //printf("clear\n");
                                                         }
            | expr ';'
            ;
@@ -456,12 +456,12 @@ enum_declare: ENUM IDENTIFIER scope_begin enum_list scope_end ';'           {
                                                                             }
             ;
 
-enum_define: ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER ';'         {
+enum_define: ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER ';'                  {
                                                                     
-                                                                    Symbol* sym = new Symbol($3.value,"int");
-                                                                    sym->setIsInitialised(1);
-                                                                    table->addSymbolInTable(sym);
-                                                                    }                
+                                                                            Symbol* sym = new Symbol($3.value,"int");
+                                                                            sym->setIsInitialised(1);
+                                                                            table->addSymbolInTable(sym);
+                                                                            }                
            ;
 
 while_proto: WHILE '(' expr ')' ';' ;
@@ -926,11 +926,11 @@ int main(int argc, char **argv) {
 
     yyparse(scanner);
 
-    scope.printSymbolTables();
+    //scope.printSymbolTables();
     scope.printSymbolTablesToFile();
-    functions.printFunctionTable();
+    //functions.printFunctionTable();
     functions.printFunctionTableToFile();
-    generator.printQuads();
+    //generator.printQuads();
     generator.printQuadsToFile();
 
     lex_deinit(scanner);

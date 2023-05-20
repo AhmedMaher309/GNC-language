@@ -1,5 +1,0 @@
-
-function name       function type       is defined     parameters
-main                void                1              
-
-

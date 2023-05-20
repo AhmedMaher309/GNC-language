@@ -196,7 +196,7 @@ void QuadGenerator::printQuads()
 void QuadGenerator::printQuadsToFile()
 {
     // Open the file for writing
-    ofstream outputFile("quadruples.txt");
+    ofstream outputFile("compiling_results/quadruples.txt");
 
     // Check if the file was opened successfully
     if (!outputFile)

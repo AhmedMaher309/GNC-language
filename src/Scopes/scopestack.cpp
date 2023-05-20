@@ -84,7 +84,7 @@ void ScopeStack::printSymbolTablesToFile(ScopeNode* node, int level, ofstream* o
     if (node == NULL)
     {
         node = globals;
-        output = new ofstream("SymbolTables.txt");
+        output = new ofstream("compiling_results/SymbolTables.txt");
 
         // Check if the file was opened successfully
         if (!output)
