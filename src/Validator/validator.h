@@ -10,6 +10,27 @@ private:
     vector<pair<int, string>> err_list;
 
 public:
+    /*
+    // Summary:
+    //     Request extensions.
+    public static class RequestExtensions
+    {
+        private static readonly char[] _commaSeparators = new char[1] { ',' };
+
+        private static readonly char[] _keyValueSeparators = new char[1] { '=' };
+
+        //
+        // Summary:
+        //     Tries the get location.
+        //
+        // Parameters:
+        //   request:
+        //     The request.
+        //
+        //   geolocation:
+        //     The geolocation.
+        publ
+    */
     string toInt(string value);
     bool isInt(string value);
     bool checkFloat(string value);

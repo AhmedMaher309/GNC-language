@@ -109,6 +109,8 @@
 %type <gvalue> rvalue
 %type <gvalue> func_sgnt
 %type <gvalue> ret_func_sgnt
+%type <gvalue> func_call
+%type <gvalue> enum_define
 
 /*to specify the precedence and associativity of operators*/
 %left EQU_EQU NOT_EQU MORE LESS MORE_OR_EQU LESS_OR_EQU
@@ -179,7 +181,16 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                             }
                                                         }
 
-           | type IDENTIFIER EQU func_call ';'
+           | type IDENTIFIER EQU func_call ';'         {  
+                                                            Symbol* sym = table->getSymbolObjectbyName($2.value);
+                                                            if (sym == NULL)
+                                                            {
+                                                                Symbol* sym = new Symbol($2.value,$1.value);
+                                                                const char* name = generator.addAssignment(sym);
+                                                                generator.addQuad("ALLOC",$2.value,"",name);
+                                                                generator.addQuad("ASSIGN",$4.value,"",name);
+                                                            }
+                                                        }
 
            | IDENTIFIER EQU func_call ';'
 
@@ -386,7 +397,8 @@ func_define: func_sgnt parameters scope_begin stmt_list scope_end               
                                                                                         }
            ;
         
-func_call: IDENTIFIER '(' expr_list ')'                                                 { /*Check function table to make sure function exists and correct parameters*/ };
+func_call: IDENTIFIER '(' expr_list ')'  ';'                                              { /*Check function table to make sure function exists and correct parameters*/ }
+          ;                                               
 
 
 
@@ -444,7 +456,12 @@ enum_declare: ENUM IDENTIFIER scope_begin enum_list scope_end ';'           {
                                                                             }
             ;
 
-enum_define: ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER ';' 
+enum_define: ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER ';'         {
+                                                                    
+                                                                    Symbol* sym = new Symbol($3.value,"int");
+                                                                    sym->setIsInitialised(1);
+                                                                    table->addSymbolInTable(sym);
+                                                                    }                
            ;
 
 while_proto: WHILE '(' expr ')' ';' ;

@@ -1,6 +1,5 @@
 
 function name       function type       is defined     parameters
-name                string              1              0: int index
-main                int                 1              
+main                void                1              
 
 
