@@ -37,7 +37,7 @@ To clean up the build artifacts, run the following command:
 
 To run the built binary, run the command:
 
-    make run IN=testcases/input.txt OUT=testcases/output.txt
+    make run
 
 * **"IN="** is an optional argument to set the name of the input file in the "testcases/" directory. (Defaults to IN=testcases/input.txt)
 **Note:** If the input file is not found in the "testcases/" directory, the program defaults to input from the terminal.
