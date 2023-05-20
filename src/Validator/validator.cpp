@@ -79,7 +79,7 @@ string Validator ::TypeConversion(string type1, string type2, string value)
 {
     if (type1 == "int" && type2 == "float" && checkFloat(value))
     {
-        return toInt(value);
+       // return toInt(value);
     }
     return value;
 }

@@ -89,13 +89,13 @@ const char *SymbolTable::getSymbolTypeByNameInTable(std::string symbolname)
 }
 
 // loop on symbol table and check if the symbol is used or not
-void SymbolTable::checkSymbolTable()
+void SymbolTable::checkSymbolTable(int linenum)
 {
     for (auto x : symbolTable)
     {
         if (x.second->checkUsed() == false)
         {
-            cout << "Warning: variable " << x.first << " is declared but not used" << endl;
+            cout << "Warning [" << linenum << "] : variable " << x.first << " is declared but not used" << endl;
         }
     }
 }

@@ -1,76 +1,23 @@
-int x;
+int x = 1;
 int y;
-int test  = 0;
-string z = x;
-void TestFunc(int x, int y, int z, int w); 
-int MAX(int a, int b); 
+int test = 0;
+string s = "hi";
 
 int main()
 {
-    int day = 3;
+    x = y;
 
-    switch (day) {
-    case 1:
-        int case1;
-        break;
-    case 2:
-        int case2;
-        break;
-    case 3:
-        int case3;
-        break;
-    case 4:
-        int case4;
-        break;
-    case 5:
-        int case5;
-        break;
-    default:
-        int caseD;
-        break;
-    }
-
-    if (5 > 3)
+    if(test == 5 * x)
     {
-        test = 666;
-        int x = test;
+        int g = 1;
     }
 
-    while(1)
-    {
-        int yy = x;
-        if (1)
-        {
-            int x = 23;
-            string z = "new";
-            x = 99;
-        }
-        else
-        {
-            x = 1;
-        }
-    }
+    bool sos = 1;
 
     return 0;
 }
 
-void NewFunc()
+string name(int index)
 {
-    int g_x = x;
-    x = 15;
-    while(1)
-    {
-        y = x;
-        x = g_x;
-    }
-}
-
-void strprnt(string s)
-{
-    print(s);
-}
-
-int MAX(int a, int b)
-{
-    return a+b;
+    return s;
 }

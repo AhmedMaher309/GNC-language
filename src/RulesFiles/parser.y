@@ -111,12 +111,12 @@
 %type <gvalue> ret_func_sgnt
 
 /*to specify the precedence and associativity of operators*/
+%left EQU_EQU NOT_EQU MORE LESS MORE_OR_EQU LESS_OR_EQU
 %left PLUS MINUS
 %left MULT DIV
 %left MODULE
 %right POWER
 %right INC DEC
-%left EQU_EQU NOT_EQU MORE LESS MORE_OR_EQU LESS_OR_EQU
 %right EQU 
 %nonassoc OR 
 %nonassoc AND
@@ -217,16 +217,16 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                             {
                                                                 Symbol* sym = table->getSymbolObjectbyName($1.value);
 
-                                                                const char* exprValue = $3.value;
+                                                                const char* exprValue = generator.getTemp($3.value);
                                                                 const char* exprType = $3.type;
 
                                                                 if (strcmp(exprType,"ID") == 0)
                                                                 {
-                                                                    SymbolTable* exprtable = scope.getSymbolTableFromStack($3.value);
+                                                                    SymbolTable* exprtable = scope.getSymbolTableFromStack(exprValue);
                                                                     if (exprtable != NULL)
                                                                     {
-                                                                        Symbol* exprsym = exprtable->getSymbolObjectbyName($3.value);
-                                                                        exprValue = exprsym->getValueAsCStr();
+                                                                        Symbol* exprsym = exprtable->getSymbolObjectbyName(exprValue);
+                                                                        exprValue = generator.getAssignment(exprsym);
                                                                         exprType = exprsym->getVarTypeAsCStr();
                                                                     }
                                                                     else
@@ -242,8 +242,7 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                                     }
                                                                     else if(valid.checkType(sym->getVarType(), exprType, @1.first_line)){
                                                                         table->modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), exprType, exprValue));
-                                                                        generator.addQuad("ASSIGN",exprValue,"",generator.getAssignment(sym));
-                                                                        generator.clearTemps();
+                                                                        generator.addQuad("ASSIGN",$3.value,"",generator.getAssignment(sym));
                                                                     }
                                                                     else
                                                                     {
@@ -255,6 +254,7 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                             {
                                                                 printf("Error [%d]: Unidentified Variable\n", @1.first_line);
                                                             }
+                                                            generator.clearTemps();
                                                         }
 
            | type IDENTIFIER EQU expr ';'               { 
@@ -263,16 +263,16 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                             {
                                                                 Symbol* sym = new Symbol($2.value,$1.value);
 
-                                                                const char* exprValue = $4.value;
+                                                                const char* exprValue = generator.getTemp($4.value);
                                                                 const char* exprType = $4.type;
 
                                                                 if (strcmp(exprType,"ID") == 0)
                                                                 {
-                                                                    SymbolTable* exprtable = scope.getSymbolTableFromStack($4.value);
+                                                                    SymbolTable* exprtable = scope.getSymbolTableFromStack(exprValue);
                                                                     if (exprtable != NULL)
                                                                     {
-                                                                        Symbol* exprsym = exprtable->getSymbolObjectbyName($4.value);
-                                                                        exprValue = exprsym->getValueAsCStr();
+                                                                        Symbol* exprsym = exprtable->getSymbolObjectbyName(exprValue);
+                                                                        exprValue = generator.getAssignment(exprsym);
                                                                         exprType = exprsym->getVarTypeAsCStr();
                                                                     }
                                                                     else
@@ -290,8 +290,7 @@ genn_stmt:  type IDENTIFIER ';'                         {
 
                                                                         const char* name = generator.addAssignment(sym);
                                                                         generator.addQuad("ALLOC",$2.value,"",name);
-                                                                        generator.addQuad("ASSIGN",exprValue,"",name);
-                                                                        generator.clearTemps();
+                                                                        generator.addQuad("ASSIGN",$4.value,"",name);
                                                                         }                                                 
                                                                     else{
                                                                         printf("Error [%d]: Type mismatch\n", @1.first_line);
@@ -302,6 +301,7 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                             {
                                                                    printf("Error [%d]: Variable is defined before\n", @1.first_line);
                                                             }
+                                                            generator.clearTemps();
                                                         }
            | expr ';'
            ;
@@ -540,7 +540,11 @@ expr_list: expr
          ;
 
 expr: rvalue                    { 
-                                    $$ = $1; 
+                                    const char* name = generator.addTemp($1.value , "" , "");
+                                    generator.addQuad("ASSIGN", $1.value, "", name);
+
+                                    $$.value = name; 
+                                    $$.type = $1.type;
                                 }
 
      | IDENTIFIER               { 
@@ -549,44 +553,51 @@ expr: rvalue                    {
                                     {
                                         Symbol* sym = table->getSymbolObjectbyName($1.value);
                                         sym->setIsUsed(1);
+                                        
+                                        const char* name = generator.addTemp(sym->getName() , "" , "");
+                                        generator.addQuad("ASSIGN", generator.getAssignment(sym), "", name);
+
+                                        $$.value = name;
+                                        $$.type = $1.type; 
+
                                         if(!sym->checkInitialisation()) 
                                         { 
-                                            printf("warning: Variable not initialized\n");
+                                            printf("warning [%d]: Variable %s not initialized\n", @1.first_line, $1.value);
                                         }
                                     } 
                                     else 
                                     {
-                                        printf("Error: Unidentified variable\n");
+                                        printf("Error [%d]: Unidentified variable %s\n", @1.first_line, $1.value);
                                     }
-                                    $$ = $1; 
+
                                 }
 
      | expr PLUS expr           {
-                                    const char* name1 = $1.value;
+                                    const char* name1 = generator.getTemp($1.value);
                                     const char* type1 = $1.type;
-                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
-                                    const char* name2 = $3.value;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = generator.getTemp($3.value);
                                     const char* type2 = $3.type;
-                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
-                                    
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+
                                     if (!(valid.checkType(type1, type2, @1.first_line)))
                                     {
                                         printf("Error [%d]: Type mismatch\n", @1.first_line);
                                     }
                                     
                                     const char* name = generator.addTemp(name1 , "+" , name2);
-                                    generator.addQuad("ADD", name1, name2, name);
+                                    generator.addQuad("ADD", $1.value, $3.value, name);
                                     $$.value = name; 
                                     $$.type = type1;
                                 }
 
      | expr MINUS expr          {
-                                    const char* name1 = $1.value;
+                                    const char* name1 = generator.getTemp($1.value);
                                     const char* type1 = $1.type;
-                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
-                                    const char* name2 = $3.value;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = generator.getTemp($3.value);
                                     const char* type2 = $3.type;
-                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
                                     
                                     if (!(valid.checkType(type1, type2, @1.first_line)))
                                     {
@@ -594,18 +605,18 @@ expr: rvalue                    {
                                     }
                                     
                                     const char* name = generator.addTemp(name1 , "-" , name2);
-                                    generator.addQuad("SUB", name1, name2, name);
+                                    generator.addQuad("SUB", $1.value, $3.value, name);
                                     $$.value = name; 
                                     $$.type = type1;
                                 }
 
      | expr MULT expr           {
-                                    const char* name1 = $1.value;
+                                    const char* name1 = generator.getTemp($1.value);
                                     const char* type1 = $1.type;
-                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
-                                    const char* name2 = $3.value;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = generator.getTemp($3.value);
                                     const char* type2 = $3.type;
-                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
                                     
                                     if (!(valid.checkType(type1, type2, @1.first_line)))
                                     {
@@ -613,18 +624,18 @@ expr: rvalue                    {
                                     }
                                     
                                     const char* name = generator.addTemp(name1 , "*" , name2);
-                                    generator.addQuad("MUL", name1, name2, name);
+                                    generator.addQuad("MUL", $1.value, $3.value, name);
                                     $$.value = name; 
                                     $$.type = type1;
                                 }
 
      | expr DIV expr            {
-                                    const char* name1 = $1.value;
+                                    const char* name1 = generator.getTemp($1.value);
                                     const char* type1 = $1.type;
-                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
-                                    const char* name2 = $3.value;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = generator.getTemp($3.value);
                                     const char* type2 = $3.type;
-                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
                                     
                                     if (!(valid.checkType(type1, type2, @1.first_line)))
                                     {
@@ -632,18 +643,18 @@ expr: rvalue                    {
                                     }
                                     
                                     const char* name = generator.addTemp(name1 , "/" , name2);
-                                    generator.addQuad("DIV", name1, name2, name);
+                                    generator.addQuad("DIV", $1.value, $3.value, name);
                                     $$.value = name; 
                                     $$.type = type1;
                                 }
 
      | expr POWER expr          {
-                                    const char* name1 = $1.value;
+                                    const char* name1 = generator.getTemp($1.value);
                                     const char* type1 = $1.type;
-                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
-                                    const char* name2 = $3.value;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = generator.getTemp($3.value);
                                     const char* type2 = $3.type;
-                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
                                     
                                     if (!(valid.checkType(type1, type2, @1.first_line)))
                                     {
@@ -651,18 +662,18 @@ expr: rvalue                    {
                                     }
                                     
                                     const char* name = generator.addTemp(name1 , "^" , name2);
-                                    generator.addQuad("POW", name1, name2, name);
+                                    generator.addQuad("POW", $1.value, $3.value, name);
                                     $$.value = name; 
                                     $$.type = type1;                                 
                                 }
 
      | expr MODULE expr         {
-                                    const char* name1 = $1.value;
+                                    const char* name1 = generator.getTemp($1.value);
                                     const char* type1 = $1.type;
-                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
-                                    const char* name2 = $3.value;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = generator.getTemp($3.value);
                                     const char* type2 = $3.type;
-                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
                                     
                                     if (!(valid.checkType(type1, type2, @1.first_line)))
                                     {
@@ -670,18 +681,18 @@ expr: rvalue                    {
                                     }
                                     
                                     const char* name = generator.addTemp(name1 , "%" , name2);
-                                    generator.addQuad("MOD", name1, name2, name);
+                                    generator.addQuad("MOD", $1.value, $3.value, name);
                                     $$.value = name; 
                                     $$.type = type1;
                                 }
 
      | expr EQU_EQU expr        {
-                                    const char* name1 = $1.value;
+                                    const char* name1 = generator.getTemp($1.value);
                                     const char* type1 = $1.type;
-                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
-                                    const char* name2 = $3.value;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = generator.getTemp($3.value);
                                     const char* type2 = $3.type;
-                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
                                     
                                     if (!(valid.checkType(type1, type2, @1.first_line)))
                                     {
@@ -689,18 +700,18 @@ expr: rvalue                    {
                                     }
                                     
                                     const char* name = generator.addTemp(name1 , "==" , name2);
-                                    generator.addQuad("EQU", name1, name2, name);
+                                    generator.addQuad("EQU", $1.value, $3.value, name);
                                     $$.value = name;  
                                     $$.type = "bool";
                                 }
 
      | expr NOT_EQU expr        {
-                                    const char* name1 = $1.value;
+                                    const char* name1 = generator.getTemp($1.value);
                                     const char* type1 = $1.type;
-                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
-                                    const char* name2 = $3.value;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = generator.getTemp($3.value);
                                     const char* type2 = $3.type;
-                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
                                     
                                     if (!(valid.checkType(type1, type2, @1.first_line)))
                                     {
@@ -708,18 +719,18 @@ expr: rvalue                    {
                                     }
                                     
                                     const char* name = generator.addTemp(name1 , "!=" , name2);
-                                    generator.addQuad("NOTEQU", name1, name2, name);
+                                    generator.addQuad("NOTEQU", $1.value, $3.value, name);
                                     $$.value = name;  
                                     $$.type = "bool";
                                 }
 
      | expr MORE_OR_EQU expr    {
-                                    const char* name1 = $1.value;
+                                    const char* name1 = generator.getTemp($1.value);
                                     const char* type1 = $1.type;
-                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
-                                    const char* name2 = $3.value;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = generator.getTemp($3.value);
                                     const char* type2 = $3.type;
-                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
                                     
                                     if (!(valid.checkType(type1, type2, @1.first_line)))
                                     {
@@ -727,18 +738,18 @@ expr: rvalue                    {
                                     }
                                     
                                     const char* name = generator.addTemp(name1 , ">=" , name2);
-                                    generator.addQuad("MOREEQU", name1, name2, name);
+                                    generator.addQuad("MOREEQU", $1.value, $3.value, name);
                                     $$.value = name;  
                                     $$.type = "bool";
                                 }
 
      | expr LESS_OR_EQU expr    {
-                                    const char* name1 = $1.value;
+                                    const char* name1 = generator.getTemp($1.value);
                                     const char* type1 = $1.type;
-                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
-                                    const char* name2 = $3.value;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = generator.getTemp($3.value);
                                     const char* type2 = $3.type;
-                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
                                     
                                     if (!(valid.checkType(type1, type2, @1.first_line)))
                                     {
@@ -746,18 +757,18 @@ expr: rvalue                    {
                                     }
                                     
                                     const char* name = generator.addTemp(name1 , "<=" , name2);
-                                    generator.addQuad("LESSEQU", name1, name2, name);
+                                    generator.addQuad("LESSEQU", $1.value, $3.value, name);
                                     $$.value = name; 
                                     $$.type = "bool";
                                 }
 
      | expr MORE expr           {
-                                    const char* name1 = $1.value;
+                                    const char* name1 = generator.getTemp($1.value);
                                     const char* type1 = $1.type;
-                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
-                                    const char* name2 = $3.value;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = generator.getTemp($3.value);
                                     const char* type2 = $3.type;
-                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
                                     
                                     if (!(valid.checkType(type1, type2, @1.first_line)))
                                     {
@@ -765,18 +776,18 @@ expr: rvalue                    {
                                     }
                                     
                                     const char* name = generator.addTemp(name1 , ">" , name2);
-                                    generator.addQuad("MORE", name1, name2, name);
+                                    generator.addQuad("MORE", $1.value, $3.value, name);
                                     $$.value = name; 
                                     $$.type = "bool";
                                 }
 
      | expr LESS expr           {
-                                    const char* name1 = $1.value;
+                                    const char* name1 = generator.getTemp($1.value);
                                     const char* type1 = $1.type;
-                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
-                                    const char* name2 = $3.value;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = generator.getTemp($3.value);
                                     const char* type2 = $3.type;
-                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
                                     
                                     if (!(valid.checkType(type1, type2, @1.first_line)))
                                     {
@@ -784,18 +795,18 @@ expr: rvalue                    {
                                     }
                                     
                                     const char* name = generator.addTemp(name1 , "<" , name2);
-                                    generator.addQuad("LESS", name1, name2, name);
+                                    generator.addQuad("LESS", $1.value, $3.value, name);
                                     $$.value = name; 
                                     $$.type = "bool";
                                 }
 
      | expr AND expr            {
-                                    const char* name1 = $1.value;
+                                    const char* name1 = generator.getTemp($1.value);
                                     const char* type1 = $1.type;
-                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
-                                    const char* name2 = $3.value;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = generator.getTemp($3.value);
                                     const char* type2 = $3.type;
-                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
                                     
                                     if (!(valid.checkType(type1, type2, @1.first_line)))
                                     {
@@ -803,18 +814,18 @@ expr: rvalue                    {
                                     }
                                     
                                     const char* name = generator.addTemp(name1 , "&&" , name2);
-                                    generator.addQuad("AND", name1, name2, name);
+                                    generator.addQuad("AND", $1.value, $3.value, name);
                                     $$.value = name;  
                                     $$.type = type1;
                                 }
 
      | expr OR expr             {
-                                    const char* name1 = $1.value;
+                                    const char* name1 = generator.getTemp($1.value);
                                     const char* type1 = $1.type;
-                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
-                                    const char* name2 = $3.value;
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    const char* name2 = generator.getTemp($3.value);
                                     const char* type2 = $3.type;
-                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($3.value)->getSymbolObjectbyName($3.value); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type2, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); name2 = generator.getAssignment(sym); type2 = sym->getVarTypeAsCStr();};
                                     
                                     if (!(valid.checkType(type1, type2, @1.first_line)))
                                     {
@@ -822,47 +833,47 @@ expr: rvalue                    {
                                     }
                                     
                                     const char* name = generator.addTemp(name1 , "||" , name2);
-                                    generator.addQuad("OR", name1, name2, name);
+                                    generator.addQuad("OR", $1.value, $3.value, name);
                                     $$.value = name; 
                                     $$.type = type1;
                                 }
 
      | expr INC                 {
-                                    const char* name1 = $1.value;
+                                    const char* name1 = generator.getTemp($1.value);
                                     const char* type1 = $1.type;
-                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
                                     if (strcmp(type1, "int") != 0 && strcmp(type1, "float") != 0){
                                         { printf("Error: Cant increment variable of this type\n");}
                                     }
 
                                     const char* name = generator.addTemp(name1 , "++", "");
-                                    generator.addQuad("INC", name1, "", name);
+                                    generator.addQuad("INC", $1.value, "", name);
                                     $$.value = name; 
                                     $$.type = type1;
                                 }
 
      | expr DEC                 {
-                                    const char* name1 = $1.value;
+                                    const char* name1 = generator.getTemp($1.value);
                                     const char* type1 = $1.type;
-                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($1.value)->getSymbolObjectbyName($1.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
                                     if (strcmp(type1, "int") != 0 && strcmp(type1, "float") != 0){
                                         { printf("Error: Cant decrement variable of this type\n");}
                                     }
                                     const char* name = generator.addTemp(name1 , "--", "");
-                                    generator.addQuad("DEC", name1, "", name);
+                                    generator.addQuad("DEC", $1.value, "", name);
                                     $$.value = name; 
                                     $$.type = type1;
                                 }
 
      | NOT expr                 {
-                                    const char* name1 = $2.value;
+                                    const char* name1 = generator.getTemp($2.value);
                                     const char* type1 = $2.type;
-                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack($2.value)->getSymbolObjectbyName($2.value); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
+                                    if (strcmp(type1, "ID") == 0) {Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); name1 = generator.getAssignment(sym); type1 = sym->getVarTypeAsCStr();};
                                     if (strcmp(type1, "int") != 0 && strcmp(type1, "bool") != 0){
                                         { printf("Error: Cant invert variable of this type\n");}
                                     }
                                     const char* name = generator.addTemp("!" , name1, "");
-                                    generator.addQuad("NOT", name1, "", name);
+                                    generator.addQuad("NOT", $2.value, "", name);
                                     $$.value = name; 
                                     $$.type = type1;
                                 }
@@ -882,7 +893,7 @@ scope_begin: '{'            {
              ;
 
 scope_end: '}'              {
-                                table->checkSymbolTable(); 
+                                table->checkSymbolTable(@1.first_line); 
                             }
            ;
 
@@ -907,6 +918,7 @@ int main(int argc, char **argv) {
     scope.printSymbolTables();
     functions.printFunctionTable();
     generator.printQuads();
+    generator.printQuadsToFile();
 
     lex_deinit(scanner);
 
