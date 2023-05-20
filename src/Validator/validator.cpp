@@ -5,12 +5,28 @@
 
 using namespace std;
 
+// cast float to integer
+string Validator ::toInt(string value)
+{
+    for (int i = 1; i < value.length() - 1; i++)
+    {
+        if (i == 0 && value[i] == '-')
+            continue;
+        else if (!isdigit(value[i]))
+        {
+            return value.substr(0, i);
+        }
+    }
+    return value;
+}
 bool Validator ::isInt(string value)
 {
     bool isInteger = 1;
     for (int i = 0; i < value.length(); i++)
     {
-        if (!isdigit(value[i]))
+        if (i == 0 && value[i] == '-')
+            continue;
+        else if (!isdigit(value[i]))
         {
             isInteger = 0;
             break;
@@ -18,6 +34,7 @@ bool Validator ::isInt(string value)
     }
     return isInteger;
 }
+
 bool Validator::checkFloat(string value)
 {
     bool isfloat = 0;
@@ -33,7 +50,7 @@ bool Validator::checkFloat(string value)
     }
     for (int i = 0; i < value.length(); i++)
     {
-        if (!isdigit(value[i]))
+        if (!isdigit(value[i]) && !(i == 0 && value[i] == '-'))
         {
             isnum = 0;
             break;
@@ -41,6 +58,7 @@ bool Validator::checkFloat(string value)
     }
     return (isnum && isfloat);
 }
+
 bool Validator::checkString(string value)
 {
     if (value[0] == '"' && value[value.length() - 1] == '"')
@@ -48,6 +66,7 @@ bool Validator::checkString(string value)
     else
         return 0;
 }
+
 bool Validator::checkChar(string value)
 {
     if (value[0] == '\'' && value[value.length() - 1] == '\'' && value.length() == 3)
@@ -55,19 +74,23 @@ bool Validator::checkChar(string value)
     else
         return 0;
 }
-bool Validator ::checkSyntax(string type, string value)
+
+string Validator ::TypeConversion(string type1, string type2, string value)
 {
-    if (type == "int" && isInt(value))
-        return 1;
-    else if (type == "bool" && (value == "1" || value == "0"))
-        return 1;
-    else if (type == "float" && checkFloat(value))
-        return 1;
-    else if (type == "string" && checkString(value))
-        return 1;
-    else if (type == "char" && checkChar(value))
-        return 1;
-    return 0;
+    if (type1 == "int" && type2 == "float" && checkFloat(value))
+    {
+       // return toInt(value);
+    }
+    return value;
+}
+
+bool Validator::checkType(string type1, string type2, int lineNumber)
+{
+    if (type1 != type2 && !(type1 == "float" && type2 == "int") && !(type1 == "int" && type2 == "float"))
+    {
+        return false;
+    }
+    return true;
 }
 
 bool Validator::isConstant(bool isinitialised, bool isconstant)

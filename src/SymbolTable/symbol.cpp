@@ -35,9 +35,23 @@ void Symbol::setIsInitialised(bool isInitialised)
     this->isInitialised = isInitialised;
 }
 
+void Symbol::setIsUsed(bool isUsed)
+{
+    this->isUsed = isUsed;
+}
+
 std::string Symbol::getName()
 {
     return this->name;
+}
+
+const char *Symbol::getNameAsCStr()
+{
+    std::string str_value = this->name;
+    char *cstr_value = new char[str_value.length() + 1];
+    str_value.copy(cstr_value, str_value.length());
+    cstr_value[str_value.length()] = '\0';
+    return cstr_value;
 }
 
 std::string Symbol::getVarType()
@@ -45,9 +59,27 @@ std::string Symbol::getVarType()
     return this->varType;
 }
 
+const char *Symbol::getVarTypeAsCStr()
+{
+    std::string str_value = this->varType;
+    char *cstr_value = new char[str_value.length() + 1];
+    str_value.copy(cstr_value, str_value.length());
+    cstr_value[str_value.length()] = '\0';
+    return cstr_value;
+}
+
 std::string Symbol::getValue()
 {
     return this->value;
+}
+
+const char *Symbol::getValueAsCStr()
+{
+    std::string str_value = this->value;
+    char *cstr_value = new char[str_value.length() + 1];
+    str_value.copy(cstr_value, str_value.length());
+    cstr_value[str_value.length()] = '\0';
+    return cstr_value;
 }
 
 bool Symbol::checkConstant()
@@ -59,7 +91,13 @@ bool Symbol::checkInitialisation()
     return this->isInitialised;
 }
 
+bool Symbol::checkUsed()
+{
+    return this->isUsed;
+}
+
 void Symbol::print()
 {
     cout << this->name << endl;
 }
+

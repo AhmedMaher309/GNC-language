@@ -67,15 +67,16 @@ The programming language implemented in this project includes the following feat
 
 The project is organized as follows:
 
-    testcases/         # Folder where input and output files are kept
+    testcases/          # Folder where input and output files are kept
     
-    src/               # Folder where the source code files are kept
-        RulesFile        # flex and bison files with C code responsible for the input/output file handling
-        SymbolTable      # folder of symbol and symboltable datastructures
-        Validator        # validator folder contains class that validates the input file
+    src/                # Folder where the source code files are kept
+        IOHandler           # Folder with C code responsible for the input/output file handling
+        RulesFiles          # Flex and bison files for the input file parsing [main]
+        SymbolTable         # Folder of symbol and symboltable data structures
+        Validator           # Validator folder contains class that validates the input file
 
-    makefile           # Makefile for building the project
-    README.md          # This file
+    makefile            # Makefile for building the project
+    README.md           # This file
 
 
 # Contributers

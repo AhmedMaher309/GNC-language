@@ -1,0 +1,67 @@
+
+=>L0(Globals)
+  ==
+
+variable name  variable type  is constant    is initialised is Used        memory location
+test           int            0              1              1              0x564ba579f670 
+z              int            0              1              1              0x564ba579f330 
+s              string         0              1              1              0x564ba579fa40 
+y              int            0              1              1              0x564ba579f070 
+x              int            0              1              1              0x564ba579ecf0 
+
+
+====================================================================================================
+
+===>L0-0(main)
+    ====
+
+variable name  variable type  is constant    is initialised is Used        memory location
+i              int            0              1              1              0x564ba57a1920 
+xy             int            0              1              1              0x564ba57a0160 
+
+
+====================================================================================================
+
+=====>L0-0-0(if)
+      ======
+
+variable name  variable type  is constant    is initialised is Used        memory location
+g              int            0              1              0              0x564ba57a1070 
+
+
+====================================================================================================
+
+=====>L0-0-1(while)
+      ======
+
+variable name  variable type  is constant    is initialised is Used        memory location
+
+
+====================================================================================================
+
+===>L0-1(name)
+    ====
+
+variable name  variable type  is constant    is initialised is Used        memory location
+index          int            0              0              0              0x564ba57a3040 
+
+
+====================================================================================================
+
+===>L0-2(name)
+    ====
+
+variable name  variable type  is constant    is initialised is Used        memory location
+index          string         0              0              1              0x564ba57a3600 
+
+
+====================================================================================================
+
+===>L0-3(name)
+    ====
+
+variable name  variable type  is constant    is initialised is Used        memory location
+index          string         0              0              0              0x564ba57a3ba0 
+
+
+====================================================================================================

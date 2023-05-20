@@ -1,6 +1,9 @@
+#pragma once
 #include <iostream>
 #include <string>
 #include <unordered_map>
+
+#define C_NULL 0
 
 class Symbol
 {
@@ -10,6 +13,7 @@ private:
     std::string value = "0xgarbage";
     bool isConstant = false;
     bool isInitialised = false;
+    bool isUsed = false;
 
 public:
     Symbol(std::string name, std::string varType);
@@ -18,11 +22,17 @@ public:
     void setValue(std::string value);
     void setIsConstant(bool isConstant);
     void setIsInitialised(bool isInitialised);
+    void setIsUsed(bool isUsed);
     void print();
 
     std::string getName();
+    const char *getNameAsCStr();
     std::string getVarType();
+    const char *getVarTypeAsCStr();
     std::string getValue();
+    const char *getValueAsCStr();
     bool checkConstant();
     bool checkInitialisation();
+    bool checkUsed();
+
 };

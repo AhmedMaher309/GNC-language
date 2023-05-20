@@ -1,15 +1,15 @@
 # Ignore Flex-generated files
-src/lex.yy.c
-src/lex.yy.o
-src/lex.yy
-src/*.output
+src/RulesFiles/lex.yy.c
+src/RulesFiles/lex.yy.o
+src/RulesFiles/lex.yy
+src/RulesFiles/*.output
 
 # Ignore Bison-generated files
-src/y.tab.c
-src/y.tab.h
-src/y.tab.o
-src/y.tab
-src/*.output
+src/RulesFiles/y.tab.c
+src/RulesFiles/y.tab.h
+src/RulesFiles/y.tab.o
+src/RulesFiles/y.tab
+src/RulesFiles/*.output
 
 # Ignore build artifacts
 *.o

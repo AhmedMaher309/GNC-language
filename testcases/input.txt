@@ -1,5 +1,49 @@
-int x = 5;
+int x = 1;
 int y;
-y = x;
-string z = "compilers";
-y = z;
+int z = 2;
+int test = 0;
+string s = "hi";
+
+int main()
+{
+    x = y;
+
+
+    int xy = 10;
+    xy = xy--;
+
+    if(test == 5 * x)
+    {
+        int g = 1;
+
+    }
+
+    bool sos = 1;
+
+    int i = z + 5;
+
+    while(i > x)
+    {
+        i = i--;
+        y = 100;
+    }
+
+    return 0;
+}
+
+string name(int index)
+{
+    return s;
+}
+
+
+string name(string index)
+{
+    return index;
+}
+
+
+bool name(string index)
+{
+    return true;
+}

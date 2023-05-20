@@ -1,3 +1,4 @@
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -5,13 +6,16 @@
 
 #include "symboltable.h"
 
-#define C_NULL 0
-
 using namespace std;
 
 void SymbolTable::addSymbolInTable(Symbol *symbol)
 {
     symbolTable[symbol->getName()] = symbol;
+}
+
+void SymbolTable::addSymbolsInTable(std::unordered_map<std::string, Symbol *> *symbolTable)
+{
+    this->symbolTable = *symbolTable;
 }
 
 void SymbolTable::modifySymbolInTable(Symbol *symbol, std::string value)
@@ -24,15 +28,15 @@ void SymbolTable::modifySymbolInTable(Symbol *symbol, std::string value)
     }
 }
 
-void SymbolTable::setSymbolByNameInTable(std::string symbolname, std::string value)
-{
-    if (symbolTable.find(symbolname) != symbolTable.end())
-    {
-        symbolTable[symbolname]->setValue(value);
-        if (value.length() != 0)
-            symbolTable[symbolname]->setIsInitialised(true);
-    }
-}
+// void SymbolTable::setSymbolByNameInTable(std::string symbolname, std::string value)
+// {
+//     if (symbolTable.find(symbolname) != symbolTable.end())
+//     {
+//         symbolTable[symbolname]->setValue(value);
+//         if (value.length() != 0)
+//             symbolTable[symbolname]->setIsInitialised(true);
+//     }
+// }
 
 const char *SymbolTable::getSymbolByNameInTable(std::string symbolname)
 {
@@ -63,11 +67,48 @@ void SymbolTable::removeSymbolFromTable(Symbol *symbol)
 void SymbolTable::printSymbolTable()
 {
     cout << endl;
-    cout << left << setw(20) << "variable name" << setw(20) << "variable type" << setw(20) << "variable value" << setw(15) << "is constant" << setw(20) << "is initialised" << setw(20) << "memory location" << endl;
+    cout << left << setw(15) << "variable name" << setw(15) << "variable type" << setw(15) << "variable value" << setw(15) << "is constant" << setw(15) << "is initialised" << setw(15) << "is Used" << setw(15) << "memory location" << endl;
     for (auto x : symbolTable)
     {
-        cout << left << setw(20) << x.first << setw(20) << x.second->getVarType() << setw(20) << x.second->getValue() << setw(15) << x.second->checkConstant() << setw(20) << x.second->checkInitialisation() << setw(20) << x.second << endl;
+        cout << left << setw(15) << x.first << setw(15) << x.second->getVarType() << setw(15) << x.second->getValue() << setw(15) << x.second->checkConstant() << setw(15) << x.second->checkInitialisation() << setw(15) << x.second->checkUsed() << setw(15) << x.second << endl;
     }
     cout << endl
          << endl;
+}
+
+void SymbolTable::printSymbolTableToFile(ofstream* outputFile)
+{
+    (*outputFile) << endl;
+    (*outputFile) << left << setw(15) << "variable name" << setw(15) << "variable type" << setw(15) << "is constant" << setw(15) << "is initialised" << setw(15) << "is Used" << setw(15) << "memory location" << endl;
+    for (auto x : symbolTable)
+    {
+        (*outputFile) << left << setw(15) << x.first << setw(15) << x.second->getVarType() << setw(15) << x.second->checkConstant() << setw(15) << x.second->checkInitialisation() << setw(15) << x.second->checkUsed() << setw(15) << x.second << endl;
+    }
+    (*outputFile) << endl
+                  << endl;
+}
+
+const char *SymbolTable::getSymbolTypeByNameInTable(std::string symbolname)
+{
+    if (symbolTable.find(symbolname) != symbolTable.end())
+    {
+        std::string str_value = symbolTable[symbolname]->getVarType();
+        char *cstr_value = new char[str_value.length() + 1];
+        str_value.copy(cstr_value, str_value.length());
+        cstr_value[str_value.length()] = '\0';
+        return cstr_value;
+    }
+    return C_NULL;
+}
+
+// loop on symbol table and check if the symbol is used or not
+void SymbolTable::checkSymbolTable(int linenum)
+{
+    for (auto x : symbolTable)
+    {
+        if (x.second->checkUsed() == false)
+        {
+            cout << "Warning [" << linenum << "] : variable " << x.first << " is declared but not used" << endl;
+        }
+    }
 }

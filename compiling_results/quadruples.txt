@@ -1,0 +1,63 @@
+START main
+
+ASSIGN              1           T0    
+ALLOC               x           R0    
+ASSIGN              T0          R0    
+ALLOC               y           R1    
+ASSIGN              2           T0    
+ALLOC               z           R2    
+ASSIGN              T0          R2    
+ASSIGN              0           T0    
+ALLOC               test        R3    
+ASSIGN              T0          R3    
+ASSIGN              "hi"        T0    
+ALLOC               s           R4    
+ASSIGN              T0          R4    
+main:                                 
+ASSIGN              R1          T0    
+ASSIGN              T0          R0    
+ASSIGN              10          T0    
+ALLOC               xy          R5    
+ASSIGN              T0          R5    
+ASSIGN              R5          T0    
+DEC                 T0          T1    
+ASSIGN              T1          R5    
+ASSIGN              R3          T0    
+ASSIGN              5           T1    
+ASSIGN              R0          T2    
+MUL                 T1    T2    T3    
+EQU                 T0    T3    T4    
+JF                  T4          L0    
+ASSIGN              1           T5    
+ALLOC               g           R6    
+ASSIGN              T5          R6    
+L0:                                   
+ASSIGN              1           T0    
+ASSIGN              R2          T0    
+ASSIGN              5           T1    
+ADD                 T0    T1    T2    
+ALLOC               i           R7    
+ASSIGN              T2          R7    
+L1:                                   
+ASSIGN              R7          T0    
+ASSIGN              R0          T1    
+MORE                T0    T1    T2    
+JF                  T2          L2    
+ASSIGN              R7          T3    
+DEC                 T3          T4    
+ASSIGN              T4          R7    
+ASSIGN              100         T0    
+ASSIGN              T0          R1    
+JMP                             L1    
+L2:                                   
+ASSIGN              0           T0    
+RET                 T1                
+name:                                 
+ASSIGN              R4          T0    
+RET                 T1                
+name:                                 
+ASSIGN                          T0    
+RET                 T1                
+name:                                 
+ASSIGN              1           T0    
+RET                 T1                
