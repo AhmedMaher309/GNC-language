@@ -255,6 +255,7 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                                 printf("Error [%d]: Unidentified Variable\n", @1.first_line);
                                                             }
                                                             generator.clearTemps();
+                                                            printf("clear\n");
                                                         }
 
            | type IDENTIFIER EQU expr ';'               { 
@@ -302,6 +303,7 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                                    printf("Error [%d]: Variable is defined before\n", @1.first_line);
                                                             }
                                                             generator.clearTemps();
+                                                            printf("clear\n");
                                                         }
            | expr ';'
            ;
@@ -388,29 +390,19 @@ func_call: IDENTIFIER '(' expr_list ')'                                         
 
 
 
-for_proto: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' ';'
-	       | FOR '(' expr ';' expr ';' expr ')' ';'
+for_proto: FOR '(' IDENTIFIER EQU expr ';' expr ';' IDENTIFIER EQU expr ')' ';'
            ;
 
-for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' scope_begin stmt_list scope_end                   {
-                                                                                                                    table = scope.removeScope("for");
-                                                                                                                    generator.endScope("for");
-                                                                                                                }
+for_define: FOR '(' IDENTIFIER EQU expr ';' expr ';' IDENTIFIER EQU expr ')' scope_begin stmt_list scope_end                   {
+                                                                                                                                    table = scope.removeScope("for");
+                                                                                                                                    generator.endScope("for");
+                                                                                                                                }
 
-	        | FOR '(' IDENTIFIER EQU expr ';' expr ';' expr ')' scope_begin break_stmt_list scope_end           {
-                                                                                                                    table = scope.removeScope("for");
-                                                                                                                    generator.endScope("for");
-                                                                                                                }
+	        | FOR '(' IDENTIFIER EQU expr ';' expr ';' IDENTIFIER EQU expr ')' scope_begin break_stmt_list scope_end           {
+                                                                                                                                    table = scope.removeScope("for");
+                                                                                                                                    generator.endScope("for");
+                                                                                                                                }
 
-            | FOR '(' expr ';' expr ';' expr ')' scope_begin stmt_list scope_end                                {
-                                                                                                                    table = scope.removeScope("for");
-                                                                                                                    generator.endScope("for");
-                                                                                                                }
-
-            | FOR '(' expr ';' expr ';' expr ')' scope_begin break_stmt_list scope_end                          {
-                                                                                                                    table = scope.removeScope("for");
-                                                                                                                    generator.endScope("for");
-                                                                                                                }
             ;
 
 
@@ -424,11 +416,13 @@ if_define: if_scope
 if_scope: IF '(' expr ')' scope_begin stmt_list scope_end                   {
                                                                                 table = scope.removeScope("if");
                                                                                 generator.endScope("if");
+                                                                                printf("if\n");
                                                                             }
 
         | IF '(' expr ')' scope_begin scope_end                             {
                                                                                 table = scope.removeScope("if");
                                                                                 generator.endScope("if");
+                                                                                printf("if\n");
                                                                             }
         ;
 

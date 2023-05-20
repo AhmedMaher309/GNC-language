@@ -1,5 +1,6 @@
 int x = 1;
 int y;
+int z = 2;
 int test = 0;
 string s = "hi";
 
@@ -7,12 +8,25 @@ int main()
 {
     x = y;
 
+
+    int xy = 10;
+    xy = xy--;
+
     if(test == 5 * x)
     {
         int g = 1;
+
     }
 
     bool sos = 1;
+
+    int i = z + 5;
+
+    while(i > x)
+    {
+        i = i--;
+        y = 100;
+    }
 
     return 0;
 }

@@ -30,7 +30,7 @@ void QuadGenerator::endScope(std::string type)
     /*TYPES: if, else, FUNCTION NAME, for, while, repeat, switch, case, enum */
     if (type == "if")
     {
-        addQuad("JN","T"+to_string(temps.size()),"","L"+to_string(labelCount));
+        addQuad("JF",parentList->back()->getDestination(),"","L"+to_string(labelCount));
         parentList->insert(parentList->end(),closedList->begin(),closedList->end());
         addQuad("L"+to_string(labelCount)+":","","","");
 
@@ -56,17 +56,24 @@ void QuadGenerator::endScope(std::string type)
     }
     else if (type == "while")
     {
-        /*ADD SCOPE TYPE SPECIFIC QUADS*/
-        addQuad(type,"__________","__________","__________");
+        string startLabel = "L"+to_string(labelCount);
+        labelCount++;
+        string endLabel = "L"+to_string(labelCount);
+        labelCount++;
 
-        /*ADD CLOSED SCOPE QUADS TO PARENT LIST*/
+        auto it = parentList->rbegin();
+        while((*it)->getDestination() != "T0")
+        {
+            ++it;
+        }
+        ++it;
+        parentList->insert(it.base(),new Quadruple(startLabel+":","","",""));
+        addQuad("JF",parentList->back()->getDestination(),"",endLabel);
+
         parentList->insert(parentList->end(),closedList->begin(),closedList->end());
 
-        /*ADD SCOPE TYPE SPECIFIC QUADS*/
-        addQuad(type,"__________","__________","__________");
-
-        /*INCREASE COUNT OF LABELS*/
-        labelCount++;
+        addQuad("JMP","","",startLabel);
+        addQuad(endLabel+":","","","");
     }
     else if (type == "repeat")
     {
