@@ -69,13 +69,17 @@ The project is organized as follows:
 
     testcases/          # Folder where input and output files are kept
     
+    compiling_results   # All the output files results from running the project 
+    
     src/                # Folder where the source code files are kept
         IOHandler           # Folder with C code responsible for the input/output file handling
         RulesFiles          # Flex and bison files for the input file parsing [main]
         SymbolTable         # Folder of symbol and symboltable data structures
         Validator           # Validator folder contains class that validates the input file
+        QuadGenerator       # The quadruples generator
 
     makefile            # Makefile for building the project
+    gui.py              # Simple ide to write and compile code for using our project 
     README.md           # This file
 
 
