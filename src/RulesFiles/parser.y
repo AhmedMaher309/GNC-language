@@ -916,7 +916,9 @@ int main(int argc, char **argv) {
     yyparse(scanner);
 
     scope.printSymbolTables();
+    scope.printSymbolTablesToFile();
     functions.printFunctionTable();
+    functions.printFunctionTableToFile();
     generator.printQuads();
     generator.printQuadsToFile();
 

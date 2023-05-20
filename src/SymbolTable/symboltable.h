@@ -1,4 +1,5 @@
 #pragma once
+#include <fstream>
 #include <iostream>
 #include <unordered_map>
 #include <string>
@@ -20,4 +21,5 @@ public:
     void checkSymbolTable(int linenum);
     void removeSymbolFromTable(Symbol *symbol);
     void printSymbolTable();
+    void printSymbolTableToFile(std::ofstream* outputFile);
 };

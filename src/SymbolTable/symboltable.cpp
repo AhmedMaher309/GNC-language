@@ -1,3 +1,4 @@
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -73,6 +74,18 @@ void SymbolTable::printSymbolTable()
     }
     cout << endl
          << endl;
+}
+
+void SymbolTable::printSymbolTableToFile(ofstream* outputFile)
+{
+    (*outputFile) << endl;
+    (*outputFile) << left << setw(15) << "variable name" << setw(15) << "variable type" << setw(15) << "variable value" << setw(15) << "is constant" << setw(15) << "is initialised" << setw(15) << "is Used" << setw(15) << "memory location" << endl;
+    for (auto x : symbolTable)
+    {
+        (*outputFile) << left << setw(15) << x.first << setw(15) << x.second->getVarType() << setw(15) << x.second->getValue() << setw(15) << x.second->checkConstant() << setw(15) << x.second->checkInitialisation() << setw(15) << x.second->checkUsed() << setw(15) << x.second << endl;
+    }
+    (*outputFile) << endl
+                  << endl;
 }
 
 const char *SymbolTable::getSymbolTypeByNameInTable(std::string symbolname)

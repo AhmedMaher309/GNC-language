@@ -1,4 +1,5 @@
 #pragma once
+#include <fstream>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -26,4 +27,5 @@ public:
     SymbolTable* getGlobals();
     SymbolTable* getSymbolTableFromStack(std::string symbolname);
     void printSymbolTables(ScopeNode* node = NULL, int level = 0);
+    void printSymbolTablesToFile(ScopeNode* node = NULL, int level = 0, std::ofstream* outputFile = NULL);
 };

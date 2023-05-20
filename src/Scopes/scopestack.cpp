@@ -1,3 +1,4 @@
+#include <fstream>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -73,5 +74,35 @@ void ScopeStack::printSymbolTables(ScopeNode* node, int level)
     for(int i = 0; i < node->children.size(); ++i)
     {
         printSymbolTables(node->children[i], level+1);
+    }
+}
+
+void ScopeStack::printSymbolTablesToFile(ScopeNode* node, int level, ofstream* outputFile)
+{
+    ofstream* output = outputFile;
+
+    if (node == NULL)
+    {
+        node = globals;
+        output = new ofstream("SymbolTables.txt");
+
+        // Check if the file was opened successfully
+        if (!output)
+        {
+            cerr << "Error opening file." << endl;
+            return;
+        }
+    }
+
+    (*output) << endl;
+    (*output) << right << setfill('=') << setw(2*(level+1)) << "=>" << left << setfill(' ') << node->name << "(" << node->type << ")" << endl;
+    (*output) << left << setw(2*(level+1)) << "" << setfill('=') << setw(node->name.size()) << "" << setfill(' ') << endl;
+
+    node->symbolTable->printSymbolTableToFile(output);
+    (*output) << "====================================================================================================" << endl;
+
+    for(int i = 0; i < node->children.size(); ++i)
+    {
+        printSymbolTablesToFile(node->children[i], level+1, output);
     }
 }
