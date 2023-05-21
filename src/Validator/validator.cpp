@@ -35,7 +35,7 @@ bool Validator ::isInt(string value)
     return isInteger;
 }
 
-bool Validator::checkFloat(string value)
+bool Validator::isFloat(string value)
 {
     bool isfloat = 0;
     bool isnum = 1;
@@ -77,17 +77,20 @@ bool Validator::checkChar(string value)
 
 string Validator ::TypeConversion(string type1, string type2, string value)
 {
-    if (type1 == "int" && type2 == "float" && checkFloat(value))
+    if (type1 == "int" && type2 == "float" && isFloat(value))
     {
-       // return toInt(value);
+       return toInt(value);
     }
     return value;
 }
 
+// return flase if there is type mismatch and push the error to the errorlist, otherwise return true
 bool Validator::checkType(string type1, string type2, int lineNumber)
 {
     if (type1 != type2 && !(type1 == "float" && type2 == "int") && !(type1 == "int" && type2 == "float"))
     {
+        string error = "Error in line [" + std::to_string(lineNumber) + "] type mismatch: ";
+        this->errorList.push_back(error);
         return false;
     }
     return true;
@@ -99,4 +102,22 @@ bool Validator::isConstant(bool isinitialised, bool isconstant)
         return 1;
     else
         return 0;
+}
+
+void Validator::checkIntializedVariable(bool isinitialised, int lineNumber){
+    if (! isinitialised){
+        string error = "Warning in line [" + std::to_string(lineNumber) + "] variable is not intialized: ";
+        this->warningList.push_back(error);
+    }
+}
+void Validator:: printErrorList(){
+    for(int i = 0; i < this->errorList.size();i++){
+        cout << this->errorList[i]<<endl;
+    }
+}
+
+void Validator:: printWarningList(){
+    for(int i = 0; i < this->warningList.size();i++){
+        cout << this->warningList[i]<<endl;
+    }
 }

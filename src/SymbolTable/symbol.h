@@ -20,7 +20,7 @@ public:
     void setName(std::string name);
     void setVarType(std::string varType);
     void setValue(std::string value);
-    void setIsConstant(bool isConstant);
+    void setConstant(bool isConstant);
     void setIsInitialised(bool isInitialised);
     void setIsUsed(bool isUsed);
     void print();

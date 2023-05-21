@@ -26,7 +26,7 @@ void Symbol::setValue(std::string value)
     this->value = value;
 }
 
-void Symbol::setIsConstant(bool isConstant)
+void Symbol::setConstant(bool isConstant)
 {
     this->isConstant = isConstant;
 }
