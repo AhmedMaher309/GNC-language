@@ -177,11 +177,11 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                             }
                                                             else
                                                             {
-                                                                printf("Error [%d]: Variable is defined before\n", @1.first_line);
+                                                                valid.raiseError("Variable is defined before", @1.first_line);
                                                             }
                                                         }
 
-           | type IDENTIFIER EQU func_call ';'         {  
+           | type IDENTIFIER EQU func_call ';'          {  
                                                             Symbol* sym = table->getSymbolObjectbyName($2.value);
                                                             if (sym == NULL)
                                                             {
@@ -203,7 +203,7 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                                 Symbol* sym = new Symbol($3.value, $2.value);
                                                                 sym->setIsInitialised(1); 
                                                                 sym->setConstant(1);
-                                                                if(valid.checkType(sym->getVarType(), $5.type, @1.first_line)){
+                                                                if(valid.checkType(sym->getVarType(), $5.type)){
                                                                     table->addSymbolInTable(sym);
                                                                     table->modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), $5.type, $5.value));
 
@@ -211,10 +211,14 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                                         generator.addQuad("CONST_ALLOC",$3.value,"",name);
                                                                         generator.addQuad("ASSIGN",$5.value,"",name);
                                                                 }
+                                                                else
+                                                                {
+                                                                    valid.raiseError("Type mismatch", @1.first_line);
+                                                                }     
                                                             }
                                                             else
                                                             {
-                                                                printf("Error [%d]: Variable is defined before\n", @1.first_line);
+                                                                valid.raiseError("Variable is defined before", @1.first_line);
                                                             }
                                                         }
 
@@ -238,24 +242,29 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                                     }
                                                                     else
                                                                     {
-                                                                        printf("Error [%d]: Unidentified Variable\n", @1.first_line);
+                                                                        valid.raiseError("undefined variable", @1.first_line);
                                                                     }
                                                                 }
 
                                                                 if(strcmp(exprType,"ID") != 0)
                                                                 {
-                                                                    if(sym->checkConstant()){
-                                                                        printf("Error [%d]: Constant cannot be reassigned\n", @1.first_line);
+                                                                    if(sym->checkConstant())
+                                                                    {
+                                                                        valid.raiseError("Constant cannot be reassigned", @1.first_line);
                                                                     }
-                                                                    else if(valid.checkType(sym->getVarType(), exprType, @1.first_line)){
+                                                                    else if(valid.checkType(sym->getVarType(), exprType)){
                                                                         table->modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), exprType, exprValue));
                                                                         generator.addQuad("ASSIGN",$3.value,"",generator.getAssignment(sym));
                                                                     }
+                                                                    else
+                                                                    {
+                                                                        valid.raiseError("Type mismatch", @1.first_line);
+                                                                    }     
                                                                 }
                                                             }
                                                             else
                                                             {
-                                                                printf("Error [%d]: Unidentified Variable\n", @1.first_line);
+                                                                valid.raiseError("undefined variable", @1.first_line); 
                                                             }
                                                             generator.clearTemps();
                                                         }
@@ -280,13 +289,13 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                                     }
                                                                     else
                                                                     {
-                                                                        printf("Error [%d]: Unidentified Variable\n", @1.first_line);
+                                                                        valid.raiseError("undefined variable", @1.first_line);
                                                                     }
                                                                 }
 
                                                                 if (strcmp(exprType,"ID") != 0)
-                                                                {
-                                                                    if (valid.checkType(sym->getVarType(), exprType, @1.first_line)) {
+                                                                {    
+                                                                    if (valid.checkType(sym->getVarType(), exprType)) {
                                                                         sym->setIsInitialised(1); 
                                                                         table->addSymbolInTable(sym); 
                                                                         table->modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), exprType, exprValue));
@@ -294,15 +303,18 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                                         const char* name = generator.addAssignment(sym);
                                                                         generator.addQuad("ALLOC",$2.value,"",name);
                                                                         generator.addQuad("ASSIGN",$4.value,"",name);
-                                                                        }                                                 
+                                                                    }  
+                                                                    else
+                                                                    {
+                                                                        valid.raiseError("Type mismatch", @1.first_line);
+                                                                    }                                               
                                                                 }
                                                             }
                                                             else
                                                             {
-                                                                   printf("Error [%d]: Variable is defined before\n", @1.first_line);
+                                                                valid.raiseError("Variable is defined before", @1.first_line);
                                                             }
                                                             generator.clearTemps();
-                                                            //printf("clear\n");
                                                         }
            | expr ';'
            ;
@@ -562,7 +574,7 @@ expr: rvalue                    {
                                     } 
                                     else 
                                     {
-                                        printf("Error [%d]: Unidentified variable %s\n", @1.first_line, $1.value);
+                                        valid.raiseError("unidentified variable", @1.first_line);
                                     }
 
                                 }
@@ -584,7 +596,10 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    bool isMatchedTypes = valid.checkType(type1, type2, @1.first_line);
+                                    if(!valid.checkType(type1, type2))
+                                    {
+                                        valid.raiseError("Type mismatch", @1.first_line);
+                                    }
                                     const char* name = generator.addTemp(name1 , "+" , name2);
                                     generator.addQuad("ADD", $1.value, $3.value, name);
                                     $$.value = name; 
@@ -608,7 +623,10 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    bool isMatchedTypes = valid.checkType(type1, type2, @1.first_line);
+                                    if(!valid.checkType(type1, type2))
+                                    {
+                                        valid.raiseError("Type mismatch", @1.first_line);
+                                    }
                                     const char* name = generator.addTemp(name1 , "-" , name2);
                                     generator.addQuad("SUB", $1.value, $3.value, name);
                                     $$.value = name; 
@@ -632,7 +650,10 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    bool isMatchedTypes = valid.checkType(type1, type2, @1.first_line);
+                                    if(!valid.checkType(type1, type2))
+                                    {
+                                        valid.raiseError("Type mismatch", @1.first_line);
+                                    }
                                     const char* name = generator.addTemp(name1 , "*" , name2);
                                     generator.addQuad("MUL", $1.value, $3.value, name);
                                     $$.value = name; 
@@ -656,7 +677,10 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    bool isMatchedTypes = valid.checkType(type1, type2, @1.first_line);
+                                    if(!valid.checkType(type1, type2))
+                                    {
+                                        valid.raiseError("Type mismatch", @1.first_line);
+                                    }
                                     const char* name = generator.addTemp(name1 , "/" , name2);
                                     generator.addQuad("DIV", $1.value, $3.value, name);
                                     $$.value = name; 
@@ -679,7 +703,10 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    bool isMatchedTypes = valid.checkType(type1, type2, @1.first_line);
+                                    if(!valid.checkType(type1, type2))
+                                    {
+                                        valid.raiseError("Type mismatch", @1.first_line);
+                                    }
                                     const char* name = generator.addTemp(name1 , "^" , name2);
                                     generator.addQuad("POW", $1.value, $3.value, name);
                                     $$.value = name; 
@@ -703,7 +730,10 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    bool isMatchedTypes = valid.checkType(type1, type2, @1.first_line);
+                                    if(!valid.checkType(type1, type2))
+                                    {
+                                        valid.raiseError("Type mismatch", @1.first_line);
+                                    }
                                     const char* name = generator.addTemp(name1 , "%" , name2);
                                     generator.addQuad("MOD", $1.value, $3.value, name);
                                     $$.value = name; 
@@ -725,7 +755,10 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    bool isMatchedTypes = valid.checkType(type1, type2, @1.first_line);
+                                    if(!valid.checkType(type1, type2))
+                                    {
+                                        valid.raiseError("Type mismatch", @1.first_line);
+                                    }
                                     const char* name = generator.addTemp(name1 , "==" , name2);
                                     generator.addQuad("EQU", $1.value, $3.value, name);
                                     $$.value = name;  
@@ -749,7 +782,10 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    bool isMatchedTypes = valid.checkType(type1, type2, @1.first_line);
+                                    if(!valid.checkType(type1, type2))
+                                    {
+                                        valid.raiseError("Type mismatch", @1.first_line);
+                                    }
                                     const char* name = generator.addTemp(name1 , "!=" , name2);
                                     generator.addQuad("NOTEQU", $1.value, $3.value, name);
                                     $$.value = name;  
@@ -773,7 +809,10 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    bool isMatchedTypes = valid.checkType(type1, type2, @1.first_line);
+                                    if(!valid.checkType(type1, type2))
+                                    {
+                                        valid.raiseError("Type mismatch", @1.first_line);
+                                    }
                                     const char* name = generator.addTemp(name1 , ">=" , name2);
                                     generator.addQuad("MOREEQU", $1.value, $3.value, name);
                                     $$.value = name;  
@@ -797,7 +836,10 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    bool isMatchedTypes = valid.checkType(type1, type2, @1.first_line);
+                                    if(!valid.checkType(type1, type2))
+                                    {
+                                        valid.raiseError("Type mismatch", @1.first_line);
+                                    }
                                     const char* name = generator.addTemp(name1 , "<=" , name2);
                                     generator.addQuad("LESSEQU", $1.value, $3.value, name);
                                     $$.value = name; 
@@ -821,7 +863,10 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    bool isMatchedTypes = valid.checkType(type1, type2, @1.first_line);
+                                    if(!valid.checkType(type1, type2))
+                                    {
+                                        valid.raiseError("Type mismatch", @1.first_line);
+                                    }
                                     const char* name = generator.addTemp(name1 , ">" , name2);
                                     generator.addQuad("MORE", $1.value, $3.value, name);
                                     $$.value = name; 
@@ -845,7 +890,10 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    bool isMatchedTypes = valid.checkType(type1, type2, @1.first_line);
+                                    if(!valid.checkType(type1, type2))
+                                    {
+                                        valid.raiseError("Type mismatch", @1.first_line);
+                                    }
                                     const char* name = generator.addTemp(name1 , "<" , name2);
                                     generator.addQuad("LESS", $1.value, $3.value, name);
                                     $$.value = name; 
@@ -869,7 +917,10 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    bool isMatchedTypes = valid.checkType(type1, type2, @1.first_line);    
+                                    if(!valid.checkType(type1, type2))
+                                    {
+                                        valid.raiseError("Type mismatch", @1.first_line);
+                                    }
                                     const char* name = generator.addTemp(name1 , "&&" , name2);
                                     generator.addQuad("AND", $1.value, $3.value, name);
                                     $$.value = name;  
@@ -893,7 +944,10 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    bool isMatchedTypes = valid.checkType(type1, type2, @1.first_line);
+                                    if(!valid.checkType(type1, type2))
+                                    {
+                                        valid.raiseError("Type mismatch", @1.first_line);
+                                    }
                                     const char* name = generator.addTemp(name1 , "||" , name2);
                                     generator.addQuad("OR", $1.value, $3.value, name);
                                     $$.value = name; 
@@ -909,8 +963,9 @@ expr: rvalue                    {
                                         name1 = generator.getAssignment(sym); 
                                         type1 = sym->getVarTypeAsCStr();
                                     };
-                                    if (strcmp(type1, "int") != 0 && strcmp(type1, "float") != 0){
-                                        { printf("Error: Cant increment variable of this type\n");}
+                                    if (strcmp(type1, "int") != 0 && strcmp(type1, "float") != 0)
+                                    {
+                                        valid.raiseError("Cant increment variable of this type", @1.first_line);
                                     }
 
                                     const char* name = generator.addTemp(name1 , "++", "");
@@ -928,8 +983,9 @@ expr: rvalue                    {
                                         name1 = generator.getAssignment(sym); 
                                         type1 = sym->getVarTypeAsCStr();
                                     }
-                                    if (strcmp(type1, "int") != 0 && strcmp(type1, "float") != 0){
-                                        { printf("Error: Cant decrement variable of this type\n");}
+                                    if (strcmp(type1, "int") != 0 && strcmp(type1, "float") != 0)
+                                    {
+                                        valid.raiseError("Cant decrement variable of this type", @1.first_line);
                                     }
                                     const char* name = generator.addTemp(name1 , "--", "");
                                     generator.addQuad("DEC", $1.value, "", name);
@@ -946,8 +1002,9 @@ expr: rvalue                    {
                                         name1 = generator.getAssignment(sym); 
                                         type1 = sym->getVarTypeAsCStr();
                                     }
-                                    if (strcmp(type1, "int") != 0 && strcmp(type1, "bool") != 0){
-                                        { printf("Error: Cant invert variable of this type\n");}
+                                    if (strcmp(type1, "int") != 0 && strcmp(type1, "bool") != 0)
+                                    {
+                                        valid.raiseError("Cant invert variable of this type", @1.first_line);
                                     }
                                     const char* name = generator.addTemp("!" , name1, "");
                                     generator.addQuad("NOT", $2.value, "", name);

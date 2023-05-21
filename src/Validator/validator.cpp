@@ -85,12 +85,10 @@ string Validator ::TypeConversion(string type1, string type2, string value)
 }
 
 // return flase if there is type mismatch and push the error to the errorlist, otherwise return true
-bool Validator::checkType(string type1, string type2, int lineNumber)
+bool Validator::checkType(string type1, string type2)
 {
     if (type1 != type2 && !(type1 == "float" && type2 == "int") && !(type1 == "int" && type2 == "float"))
     {
-        string error = "Error in line [" + std::to_string(lineNumber) + "] type mismatch: ";
-        this->errorList.push_back(error);
         return false;
     }
     return true;
@@ -104,12 +102,24 @@ bool Validator::isConstant(bool isinitialised, bool isconstant)
         return 0;
 }
 
+
+// check if the variable is initialized or raise warning
 void Validator::checkIntializedVariable(bool isinitialised, int lineNumber){
     if (! isinitialised){
-        string error = "Warning in line [" + std::to_string(lineNumber) + "] variable is not intialized: ";
-        this->warningList.push_back(error);
+        raiseWarning("variable is not intialized", lineNumber);
     }
 }
+
+void Validator::raiseError(std::string message, int lineNumber){
+        string error = "Error in line [" + std::to_string(lineNumber) + "]: " + message ;
+        this->errorList.push_back(error);
+}
+
+void Validator::raiseWarning(std::string message, int lineNumber){
+        string error = "Warning in line [" + std::to_string(lineNumber) + "]: " + message ;
+        this->errorList.push_back(error);
+}
+
 void Validator:: printErrorList(){
     for(int i = 0; i < this->errorList.size();i++){
         cout << this->errorList[i]<<endl;

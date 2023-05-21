@@ -39,8 +39,10 @@ public:
     bool checkChar(string value);
     string TypeConversion(string type1, string type2, string value);
     bool isConstant(bool isinitialised, bool isconstant);
-    bool checkType(string type1, string type2, int lineNumber);
+    bool checkType(string type1, string type2);
     void checkIntializedVariable(bool isinitialised, int lineNumber);
+    void raiseError(string message, int lineNumber);
+    void raiseWarning(string message, int lineNumber);
     void printErrorList();
     void printWarningList();
 
