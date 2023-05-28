@@ -86,8 +86,6 @@ CONSTANT    "const"
 
     /* others */ /* TODO: include these operators*/
 "!="                                                    { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return NOT_EQU; }
-"++"                                                    { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return INC; }
-"--"                                                    { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return DEC; }
 
     /* logical operators */
 "&&"                                                    { yylloc->first_column = yylloc->last_column; yylloc->first_line = yylloc->last_line; yylloc->last_column += yyleng; return AND; }
