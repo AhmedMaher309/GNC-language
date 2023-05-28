@@ -97,7 +97,7 @@
 %token IF ELSE RETURN
 %token SWITCH CASE DEFAULT
 %token PRINT
-%token MINUS MULT PLUS DIV MODULE POWER EQU INC DEC
+%token MINUS MULT PLUS DIV MODULE POWER EQU
 %token MORE LESS EQU_EQU MORE_OR_EQU LESS_OR_EQU NOT_EQU
 %token AND OR NOT
 %token REPEAT UNTIL
@@ -120,7 +120,6 @@
 %left MULT DIV
 %left MODULE
 %right POWER
-%right INC DEC
 %right EQU 
 %nonassoc OR 
 %nonassoc AND
@@ -927,7 +926,7 @@ compare_and_logic_expr:   expr_terminal
                                                                 $$.type = type1;
                                                             }
 
-            |NOT compare_and_logic_expr                          {
+            |NOT compare_and_logic_expr                 {
                                                             const char* name1 = generator.getTemp($2.value);
                                                             const char* type1 = $2.type;
                                                             if (strcmp(type1, "ID") == 0) 
