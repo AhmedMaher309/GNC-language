@@ -75,7 +75,7 @@ The project is organized as follows:
         IOHandler           # Folder with C code responsible for the input/output file handling
         RulesFiles          # Flex and bison files for the input file parsing [main]
         SymbolTable         # Folder of symbol and symboltable data structures
-        Validator           # Validator folder contains class that validates the input file
+        symanticAnalysis    # Folder contains SymanticAnalyser class that validates the input file
         QuadGenerator       # The quadruples generator
 
     makefile            # Makefile for building the project
