@@ -15,7 +15,7 @@
     #include "../Scopes/scopestack.h"
     #include "../QuadGenerator/quadgenerator.h"
     #include "../FunctionTable/functiontable.h"
-    #include "../Validator/validator.h"
+    #include "../semanticAnalysis/SemanticAnalyser.h"
     extern void lex_init(void*&);
     extern void lex_deinit(void*&);
     extern int yylex(union YYSTYPE*, struct YYLTYPE*, void*);
@@ -32,7 +32,7 @@
     FunctionTable functions;
     Function* func = NULL;
 
-    Validator valid;
+    SemanticAnalyser symanticAnalyser;
 %}
 
 /* ### Regular Definitions ### */
@@ -177,7 +177,7 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                             }
                                                             else
                                                             {
-                                                                valid.raiseError("Variable is defined before", @1.first_line);
+                                                                symanticAnalyser.raiseError("Variable is defined before", @1.first_line);
                                                             }
                                                         }
 
@@ -203,9 +203,9 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                                 Symbol* sym = new Symbol($3.value, $2.value);
                                                                 sym->setIsInitialised(1); 
                                                                 sym->setConstant(1);
-                                                                if(valid.checkType(sym->getVarType(), $5.type)){
+                                                                if(symanticAnalyser.checkType(sym->getVarType(), $5.type)){
                                                                     table->addSymbolInTable(sym);
-                                                                    table->modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), $5.type, $5.value));
+                                                                    table->modifySymbolInTable(sym,symanticAnalyser.TypeConversion(sym->getVarType(), $5.type, $5.value));
 
                                                                         const char* name = generator.addAssignment(sym);
                                                                         generator.addQuad("CONST_ALLOC",$3.value,"",name);
@@ -213,12 +213,12 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                                 }
                                                                 else
                                                                 {
-                                                                    valid.raiseError("Type mismatch", @1.first_line);
+                                                                    symanticAnalyser.raiseError("Type mismatch", @1.first_line);
                                                                 }     
                                                             }
                                                             else
                                                             {
-                                                                valid.raiseError("Variable is defined before", @1.first_line);
+                                                                symanticAnalyser.raiseError("Variable is defined before", @1.first_line);
                                                             }
                                                         }
 
@@ -242,7 +242,7 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                                     }
                                                                     else
                                                                     {
-                                                                        valid.raiseError("undefined variable", @1.first_line);
+                                                                        symanticAnalyser.raiseError("undefined variable", @1.first_line);
                                                                     }
                                                                 }
 
@@ -250,21 +250,21 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                                 {
                                                                     if(sym->checkConstant())
                                                                     {
-                                                                        valid.raiseError("Constant cannot be reassigned", @1.first_line);
+                                                                        symanticAnalyser.raiseError("Constant cannot be reassigned", @1.first_line);
                                                                     }
-                                                                    else if(valid.checkType(sym->getVarType(), exprType)){
-                                                                        table->modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), exprType, exprValue));
+                                                                    else if(symanticAnalyser.checkType(sym->getVarType(), exprType)){
+                                                                        table->modifySymbolInTable(sym,symanticAnalyser.TypeConversion(sym->getVarType(), exprType, exprValue));
                                                                         generator.addQuad("ASSIGN",$3.value,"",generator.getAssignment(sym));
                                                                     }
                                                                     else
                                                                     {
-                                                                        valid.raiseError("Type mismatch", @1.first_line);
+                                                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
                                                                     }     
                                                                 }
                                                             }
                                                             else
                                                             {
-                                                                valid.raiseError("undefined variable", @1.first_line); 
+                                                                symanticAnalyser.raiseError("undefined variable", @1.first_line); 
                                                             }
                                                             generator.clearTemps();
                                                         }
@@ -289,16 +289,16 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                                     }
                                                                     else
                                                                     {
-                                                                        valid.raiseError("undefined variable", @1.first_line);
+                                                                        symanticAnalyser.raiseError("undefined variable", @1.first_line);
                                                                     }
                                                                 }
 
                                                                 if (strcmp(exprType,"ID") != 0)
                                                                 {    
-                                                                    if (valid.checkType(sym->getVarType(), exprType)) {
+                                                                    if (symanticAnalyser.checkType(sym->getVarType(), exprType)) {
                                                                         sym->setIsInitialised(1); 
                                                                         table->addSymbolInTable(sym); 
-                                                                        table->modifySymbolInTable(sym,valid.TypeConversion(sym->getVarType(), exprType, exprValue));
+                                                                        table->modifySymbolInTable(sym,symanticAnalyser.TypeConversion(sym->getVarType(), exprType, exprValue));
 
                                                                         const char* name = generator.addAssignment(sym);
                                                                         generator.addQuad("ALLOC",$2.value,"",name);
@@ -306,13 +306,13 @@ genn_stmt:  type IDENTIFIER ';'                         {
                                                                     }  
                                                                     else
                                                                     {
-                                                                        valid.raiseError("Type mismatch", @1.first_line);
+                                                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
                                                                     }                                               
                                                                 }
                                                             }
                                                             else
                                                             {
-                                                                valid.raiseError("Variable is defined before", @1.first_line);
+                                                                symanticAnalyser.raiseError("Variable is defined before", @1.first_line);
                                                             }
                                                             generator.clearTemps();
                                                         }
@@ -570,11 +570,11 @@ expr: rvalue                    {
 
                                         $$.value = name;
                                         $$.type = $1.type; 
-                                        valid.checkIntializedVariable(sym->checkInitialisation(), @1.first_line);
+                                        symanticAnalyser.checkIntializedVariable(sym->checkInitialisation(), @1.first_line);
                                     } 
                                     else 
                                     {
-                                        valid.raiseError("unidentified variable", @1.first_line);
+                                        symanticAnalyser.raiseError("unidentified variable", @1.first_line);
                                     }
 
                                 }
@@ -596,9 +596,9 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    if(!valid.checkType(type1, type2))
+                                    if(!symanticAnalyser.checkType(type1, type2))
                                     {
-                                        valid.raiseError("Type mismatch", @1.first_line);
+                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
                                     }
                                     const char* name = generator.addTemp(name1 , "+" , name2);
                                     generator.addQuad("ADD", $1.value, $3.value, name);
@@ -623,9 +623,9 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    if(!valid.checkType(type1, type2))
+                                    if(!symanticAnalyser.checkType(type1, type2))
                                     {
-                                        valid.raiseError("Type mismatch", @1.first_line);
+                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
                                     }
                                     const char* name = generator.addTemp(name1 , "-" , name2);
                                     generator.addQuad("SUB", $1.value, $3.value, name);
@@ -650,9 +650,9 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    if(!valid.checkType(type1, type2))
+                                    if(!symanticAnalyser.checkType(type1, type2))
                                     {
-                                        valid.raiseError("Type mismatch", @1.first_line);
+                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
                                     }
                                     const char* name = generator.addTemp(name1 , "*" , name2);
                                     generator.addQuad("MUL", $1.value, $3.value, name);
@@ -677,9 +677,9 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    if(!valid.checkType(type1, type2))
+                                    if(!symanticAnalyser.checkType(type1, type2))
                                     {
-                                        valid.raiseError("Type mismatch", @1.first_line);
+                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
                                     }
                                     const char* name = generator.addTemp(name1 , "/" , name2);
                                     generator.addQuad("DIV", $1.value, $3.value, name);
@@ -703,9 +703,9 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    if(!valid.checkType(type1, type2))
+                                    if(!symanticAnalyser.checkType(type1, type2))
                                     {
-                                        valid.raiseError("Type mismatch", @1.first_line);
+                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
                                     }
                                     const char* name = generator.addTemp(name1 , "^" , name2);
                                     generator.addQuad("POW", $1.value, $3.value, name);
@@ -730,9 +730,9 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    if(!valid.checkType(type1, type2))
+                                    if(!symanticAnalyser.checkType(type1, type2))
                                     {
-                                        valid.raiseError("Type mismatch", @1.first_line);
+                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
                                     }
                                     const char* name = generator.addTemp(name1 , "%" , name2);
                                     generator.addQuad("MOD", $1.value, $3.value, name);
@@ -755,9 +755,9 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    if(!valid.checkType(type1, type2))
+                                    if(!symanticAnalyser.checkType(type1, type2))
                                     {
-                                        valid.raiseError("Type mismatch", @1.first_line);
+                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
                                     }
                                     const char* name = generator.addTemp(name1 , "==" , name2);
                                     generator.addQuad("EQU", $1.value, $3.value, name);
@@ -782,9 +782,9 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    if(!valid.checkType(type1, type2))
+                                    if(!symanticAnalyser.checkType(type1, type2))
                                     {
-                                        valid.raiseError("Type mismatch", @1.first_line);
+                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
                                     }
                                     const char* name = generator.addTemp(name1 , "!=" , name2);
                                     generator.addQuad("NOTEQU", $1.value, $3.value, name);
@@ -809,9 +809,9 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    if(!valid.checkType(type1, type2))
+                                    if(!symanticAnalyser.checkType(type1, type2))
                                     {
-                                        valid.raiseError("Type mismatch", @1.first_line);
+                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
                                     }
                                     const char* name = generator.addTemp(name1 , ">=" , name2);
                                     generator.addQuad("MOREEQU", $1.value, $3.value, name);
@@ -836,9 +836,9 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    if(!valid.checkType(type1, type2))
+                                    if(!symanticAnalyser.checkType(type1, type2))
                                     {
-                                        valid.raiseError("Type mismatch", @1.first_line);
+                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
                                     }
                                     const char* name = generator.addTemp(name1 , "<=" , name2);
                                     generator.addQuad("LESSEQU", $1.value, $3.value, name);
@@ -863,9 +863,9 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    if(!valid.checkType(type1, type2))
+                                    if(!symanticAnalyser.checkType(type1, type2))
                                     {
-                                        valid.raiseError("Type mismatch", @1.first_line);
+                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
                                     }
                                     const char* name = generator.addTemp(name1 , ">" , name2);
                                     generator.addQuad("MORE", $1.value, $3.value, name);
@@ -890,9 +890,9 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    if(!valid.checkType(type1, type2))
+                                    if(!symanticAnalyser.checkType(type1, type2))
                                     {
-                                        valid.raiseError("Type mismatch", @1.first_line);
+                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
                                     }
                                     const char* name = generator.addTemp(name1 , "<" , name2);
                                     generator.addQuad("LESS", $1.value, $3.value, name);
@@ -917,9 +917,9 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    if(!valid.checkType(type1, type2))
+                                    if(!symanticAnalyser.checkType(type1, type2))
                                     {
-                                        valid.raiseError("Type mismatch", @1.first_line);
+                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
                                     }
                                     const char* name = generator.addTemp(name1 , "&&" , name2);
                                     generator.addQuad("AND", $1.value, $3.value, name);
@@ -944,9 +944,9 @@ expr: rvalue                    {
                                         name2 = generator.getAssignment(sym); 
                                         type2 = sym->getVarTypeAsCStr();
                                     }
-                                    if(!valid.checkType(type1, type2))
+                                    if(!symanticAnalyser.checkType(type1, type2))
                                     {
-                                        valid.raiseError("Type mismatch", @1.first_line);
+                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
                                     }
                                     const char* name = generator.addTemp(name1 , "||" , name2);
                                     generator.addQuad("OR", $1.value, $3.value, name);
@@ -965,7 +965,7 @@ expr: rvalue                    {
                                     };
                                     if (strcmp(type1, "int") != 0 && strcmp(type1, "float") != 0)
                                     {
-                                        valid.raiseError("Cant increment variable of this type", @1.first_line);
+                                        symanticAnalyser.raiseError("Cant increment variable of this type", @1.first_line);
                                     }
 
                                     const char* name = generator.addTemp(name1 , "++", "");
@@ -985,7 +985,7 @@ expr: rvalue                    {
                                     }
                                     if (strcmp(type1, "int") != 0 && strcmp(type1, "float") != 0)
                                     {
-                                        valid.raiseError("Cant decrement variable of this type", @1.first_line);
+                                        symanticAnalyser.raiseError("Cant decrement variable of this type", @1.first_line);
                                     }
                                     const char* name = generator.addTemp(name1 , "--", "");
                                     generator.addQuad("DEC", $1.value, "", name);
@@ -1004,7 +1004,7 @@ expr: rvalue                    {
                                     }
                                     if (strcmp(type1, "int") != 0 && strcmp(type1, "bool") != 0)
                                     {
-                                        valid.raiseError("Cant invert variable of this type", @1.first_line);
+                                        symanticAnalyser.raiseError("Cant invert variable of this type", @1.first_line);
                                     }
                                     const char* name = generator.addTemp("!" , name1, "");
                                     generator.addQuad("NOT", $2.value, "", name);
@@ -1057,8 +1057,8 @@ int main(int argc, char **argv) {
     //generator.printQuads();
     generator.printQuadsToFile();
 
-    valid.printErrorList();
-    valid.printWarningList();
+    symanticAnalyser.printErrorList();
+    symanticAnalyser.printWarningList();
 
     lex_deinit(scanner);
 

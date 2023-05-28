@@ -4,7 +4,7 @@
 #include <string>
 using namespace std;
 
-class Validator
+class SemanticAnalyser
 {
 private:
     vector<string> errorList;
