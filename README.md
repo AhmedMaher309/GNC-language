@@ -91,8 +91,7 @@ The project is organized as follows:
 - [Ahmed Maher](https://github.com/AhmedMaher309)
 
 
-# Contributing
-To contribute to GNC language and Compiler, follow these steps:
+## To contribute to GNC language and Compiler, follow these steps:
 
 1. Fork this repository.
 2. Make your changes and commit them to your fork.
