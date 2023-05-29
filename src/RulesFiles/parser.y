@@ -106,7 +106,8 @@
 
 %type <gvalue> type
 %type <gvalue> arthimetic_expr
-%type <gvalue> compare_and_logic_expr
+%type <gvalue> logic_expr
+%type <gvalue> compare_expr
 %type <gvalue> expr_terminal
 %type <gvalue> rvalue
 %type <gvalue> func_sgnt
@@ -347,12 +348,12 @@ while_stmt: while_proto
            | while_define
            ;
            
-repeat_stmt: REPEAT scope_begin stmt_list scope_end UNTIL '(' compare_and_logic_expr ')' ';'              { 
+repeat_stmt: REPEAT scope_begin stmt_list scope_end UNTIL '(' logic_expr ')' ';'              { 
                                                                                             table = scope.removeScope("repeat");
                                                                                             generator.endScope("repeat"); 
                                                                                         }
 
-                  | REPEAT scope_begin scope_end UNTIL '(' compare_and_logic_expr ')' ';'                 { 
+                  | REPEAT scope_begin scope_end UNTIL '(' logic_expr ')' ';'                 { 
                                                                                             table = scope.removeScope("repeat");
                                                                                             generator.endScope("repeat"); 
                                                                                         }
@@ -404,15 +405,15 @@ func_call: IDENTIFIER '(' arthimetic_expr_list ')'  ';'                         
 
 
 
-for_proto: FOR '(' IDENTIFIER EQU arthimetic_expr ';' compare_and_logic_expr ';' IDENTIFIER EQU arthimetic_expr ')' ';'
+for_proto: FOR '(' IDENTIFIER EQU arthimetic_expr ';' logic_expr ';' IDENTIFIER EQU arthimetic_expr ')' ';'
            ;
 
-for_define: FOR '(' IDENTIFIER EQU arthimetic_expr ';' compare_and_logic_expr ';' IDENTIFIER EQU arthimetic_expr ')' scope_begin stmt_list scope_end                   {
+for_define: FOR '(' IDENTIFIER EQU arthimetic_expr ';' logic_expr ';' IDENTIFIER EQU arthimetic_expr ')' scope_begin stmt_list scope_end                   {
                                                                                                                                     table = scope.removeScope("for");
                                                                                                                                     generator.endScope("for");
                                                                                                                                 }
 
-	        | FOR '(' IDENTIFIER EQU arthimetic_expr ';' compare_and_logic_expr ';' IDENTIFIER EQU arthimetic_expr ')' scope_begin break_stmt_list scope_end           {
+	        | FOR '(' IDENTIFIER EQU arthimetic_expr ';' logic_expr ';' IDENTIFIER EQU arthimetic_expr ')' scope_begin break_stmt_list scope_end           {
                                                                                                                                     table = scope.removeScope("for");
                                                                                                                                     generator.endScope("for");
                                                                                                                                 }
@@ -420,20 +421,20 @@ for_define: FOR '(' IDENTIFIER EQU arthimetic_expr ';' compare_and_logic_expr ';
             ;
 
 
-if_proto: IF '(' compare_and_logic_expr ')' ';'
+if_proto: IF '(' logic_expr ')' ';'
         ;
 
 if_define: if_scope 
          | if_scope else_scope
          ;
 
-if_scope: IF '(' compare_and_logic_expr ')' scope_begin stmt_list scope_end           {
+if_scope: IF '(' logic_expr ')' scope_begin stmt_list scope_end           {
                                                                                 table = scope.removeScope("if");
                                                                                 generator.endScope("if");
                                                                                 printf("if\n");
                                                                             }
 
-        | IF '(' compare_and_logic_expr ')' scope_begin scope_end                             {
+        | IF '(' logic_expr ')' scope_begin scope_end                             {
                                                                                 table = scope.removeScope("if");
                                                                                 generator.endScope("if");
                                                                                 printf("if\n");
@@ -466,15 +467,15 @@ enum_define: ENUM IDENTIFIER IDENTIFIER EQU IDENTIFIER ';'                  {
                                                                             }                
            ;
 
-while_proto: WHILE '(' compare_and_logic_expr ')' ';' ;
+while_proto: WHILE '(' logic_expr ')' ';' ;
 
 
-while_define: WHILE '(' compare_and_logic_expr ')' scope_begin stmt_list scope_end            {
+while_define: WHILE '(' logic_expr ')' scope_begin stmt_list scope_end            {
                                                                                 table = scope.removeScope("while");
                                                                                 generator.endScope("while");
                                                                             }
 
-             | WHILE '(' compare_and_logic_expr ')' scope_begin break_stmt_list scope_end     {
+             | WHILE '(' logic_expr ')' scope_begin break_stmt_list scope_end     {
                                                                                 table = scope.removeScope("while");
                                                                                 generator.endScope("while");                                                                            
                                                                             }
@@ -709,170 +710,7 @@ arthimetic_expr: expr_terminal
 
 
 
-compare_and_logic_expr:   expr_terminal
-
-
-               | compare_and_logic_expr EQU_EQU compare_and_logic_expr          {
-                                                                const char* name1 = generator.getTemp($1.value);
-                                                                const char* type1 = $1.type;
-                                                                if (strcmp(type1, "ID") == 0) {
-                                                                    Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); 
-                                                                    name1 = generator.getAssignment(sym); 
-                                                                    type1 = sym->getVarTypeAsCStr();
-                                                                }
-                                                                const char* name2 = generator.getTemp($3.value);
-                                                                const char* type2 = $3.type;
-                                                                if (strcmp(type2, "ID") == 0) {
-                                                                    Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); 
-                                                                    name2 = generator.getAssignment(sym); 
-                                                                    type2 = sym->getVarTypeAsCStr();
-                                                                }
-                                                                if(!symanticAnalyser.checkType(type1, type2))
-                                                                {
-                                                                    symanticAnalyser.raiseError("Type mismatch", @1.first_line);
-                                                                }
-                                                                const char* name = generator.addTemp(name1 , "==" , name2);
-                                                                generator.addQuad("EQU", $1.value, $3.value, name);
-                                                                $$.value = name;  
-                                                                $$.type = "bool";
-                                                            }
-
-            | compare_and_logic_expr NOT_EQU compare_and_logic_expr          {
-                                                                    const char* name1 = generator.getTemp($1.value);
-                                                                    const char* type1 = $1.type;
-                                                                    if (strcmp(type1, "ID") == 0) 
-                                                                    {
-                                                                        Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); 
-                                                                        name1 = generator.getAssignment(sym); 
-                                                                        type1 = sym->getVarTypeAsCStr();
-                                                                    }
-                                                                    const char* name2 = generator.getTemp($3.value);
-                                                                    const char* type2 = $3.type;
-                                                                    if (strcmp(type2, "ID") == 0) 
-                                                                    {
-                                                                        Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); 
-                                                                        name2 = generator.getAssignment(sym); 
-                                                                        type2 = sym->getVarTypeAsCStr();
-                                                                    }
-                                                                    if(!symanticAnalyser.checkType(type1, type2))
-                                                                    {
-                                                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
-                                                                    }
-                                                                    const char* name = generator.addTemp(name1 , "!=" , name2);
-                                                                    generator.addQuad("NOTEQU", $1.value, $3.value, name);
-                                                                    $$.value = name;  
-                                                                    $$.type = "bool";
-                                                                }
-
-            | compare_and_logic_expr MORE_OR_EQU compare_and_logic_expr      {
-                                                                    const char* name1 = generator.getTemp($1.value);
-                                                                    const char* type1 = $1.type;
-                                                                    if (strcmp(type1, "ID") == 0) 
-                                                                    {
-                                                                        Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); 
-                                                                        name1 = generator.getAssignment(sym); 
-                                                                        type1 = sym->getVarTypeAsCStr();
-                                                                    }
-                                                                    const char* name2 = generator.getTemp($3.value);
-                                                                    const char* type2 = $3.type;
-                                                                    if (strcmp(type2, "ID") == 0) 
-                                                                    {
-                                                                        Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); 
-                                                                        name2 = generator.getAssignment(sym); 
-                                                                        type2 = sym->getVarTypeAsCStr();
-                                                                    }
-                                                                    if(!symanticAnalyser.checkType(type1, type2))
-                                                                    {
-                                                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
-                                                                    }
-                                                                    const char* name = generator.addTemp(name1 , ">=" , name2);
-                                                                    generator.addQuad("MOREEQU", $1.value, $3.value, name);
-                                                                    $$.value = name;  
-                                                                    $$.type = "bool";
-                                                                }
-
-            | compare_and_logic_expr LESS_OR_EQU compare_and_logic_expr      {
-                                                                    const char* name1 = generator.getTemp($1.value);
-                                                                    const char* type1 = $1.type;
-                                                                    if (strcmp(type1, "ID") == 0) 
-                                                                    {
-                                                                        Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); 
-                                                                        name1 = generator.getAssignment(sym); 
-                                                                        type1 = sym->getVarTypeAsCStr();
-                                                                    }
-                                                                    const char* name2 = generator.getTemp($3.value);
-                                                                    const char* type2 = $3.type;
-                                                                    if (strcmp(type2, "ID") == 0) 
-                                                                    {
-                                                                        Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); 
-                                                                        name2 = generator.getAssignment(sym); 
-                                                                        type2 = sym->getVarTypeAsCStr();
-                                                                    }
-                                                                    if(!symanticAnalyser.checkType(type1, type2))
-                                                                    {
-                                                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
-                                                                    }
-                                                                    const char* name = generator.addTemp(name1 , "<=" , name2);
-                                                                    generator.addQuad("LESSEQU", $1.value, $3.value, name);
-                                                                    $$.value = name; 
-                                                                    $$.type = "bool";
-                                                                }
-
-            | compare_and_logic_expr MORE compare_and_logic_expr             {
-                                                                    const char* name1 = generator.getTemp($1.value);
-                                                                    const char* type1 = $1.type;
-                                                                    if (strcmp(type1, "ID") == 0) 
-                                                                    {
-                                                                        Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); 
-                                                                        name1 = generator.getAssignment(sym); 
-                                                                        type1 = sym->getVarTypeAsCStr();
-                                                                    }
-                                                                    const char* name2 = generator.getTemp($3.value);
-                                                                    const char* type2 = $3.type;
-                                                                    if (strcmp(type2, "ID") == 0) 
-                                                                    {
-                                                                        Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); 
-                                                                        name2 = generator.getAssignment(sym); 
-                                                                        type2 = sym->getVarTypeAsCStr();
-                                                                    }
-                                                                    if(!symanticAnalyser.checkType(type1, type2))
-                                                                    {
-                                                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
-                                                                    }
-                                                                    const char* name = generator.addTemp(name1 , ">" , name2);
-                                                                    generator.addQuad("MORE", $1.value, $3.value, name);
-                                                                    $$.value = name; 
-                                                                    $$.type = "bool";
-                                                                }
-
-            | compare_and_logic_expr LESS compare_and_logic_expr             {
-                                                                    const char* name1 = generator.getTemp($1.value);
-                                                                    const char* type1 = $1.type;
-                                                                    if (strcmp(type1, "ID") == 0) 
-                                                                    {
-                                                                        Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); 
-                                                                        name1 = generator.getAssignment(sym); 
-                                                                        type1 = sym->getVarTypeAsCStr();
-                                                                    }
-                                                                    const char* name2 = generator.getTemp($3.value);
-                                                                    const char* type2 = $3.type;
-                                                                    if (strcmp(type2, "ID") == 0) 
-                                                                    {
-                                                                        Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); 
-                                                                        name2 = generator.getAssignment(sym); 
-                                                                        type2 = sym->getVarTypeAsCStr();
-                                                                    }
-                                                                    if(!symanticAnalyser.checkType(type1, type2))
-                                                                    {
-                                                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
-                                                                    }
-                                                                    const char* name = generator.addTemp(name1 , "<" , name2);
-                                                                    generator.addQuad("LESS", $1.value, $3.value, name);
-                                                                    $$.value = name; 
-                                                                    $$.type = "bool";
-                                                                }
-                                        
-            | compare_and_logic_expr AND compare_and_logic_expr                    {
+logic_expr:  compare_expr AND compare_expr                    {
                                                                     const char* name1 = generator.getTemp($1.value);
                                                                     const char* type1 = $1.type;
                                                                     if (strcmp(type1, "ID") == 0) 
@@ -899,7 +737,7 @@ compare_and_logic_expr:   expr_terminal
                                                                     $$.type = type1;
                                                                 }
 
-            | compare_and_logic_expr OR compare_and_logic_expr                     {
+            | compare_expr OR compare_expr                     {
                                                                 const char* name1 = generator.getTemp($1.value);
                                                                 const char* type1 = $1.type;
                                                                 if (strcmp(type1, "ID") == 0) 
@@ -926,7 +764,7 @@ compare_and_logic_expr:   expr_terminal
                                                                 $$.type = type1;
                                                             }
 
-            |NOT compare_and_logic_expr                 {
+            |NOT compare_expr                 {
                                                             const char* name1 = generator.getTemp($2.value);
                                                             const char* type1 = $2.type;
                                                             if (strcmp(type1, "ID") == 0) 
@@ -944,10 +782,175 @@ compare_and_logic_expr:   expr_terminal
                                                             $$.value = name; 
                                                             $$.type = type1;
                                                         }
-
+            | compare_expr
             ;
 
 
+compare_expr:   expr_terminal
+
+
+               | compare_expr EQU_EQU compare_expr          {
+                                                                const char* name1 = generator.getTemp($1.value);
+                                                                const char* type1 = $1.type;
+                                                                if (strcmp(type1, "ID") == 0) {
+                                                                    Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); 
+                                                                    name1 = generator.getAssignment(sym); 
+                                                                    type1 = sym->getVarTypeAsCStr();
+                                                                }
+                                                                const char* name2 = generator.getTemp($3.value);
+                                                                const char* type2 = $3.type;
+                                                                if (strcmp(type2, "ID") == 0) {
+                                                                    Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); 
+                                                                    name2 = generator.getAssignment(sym); 
+                                                                    type2 = sym->getVarTypeAsCStr();
+                                                                }
+                                                                if(!symanticAnalyser.checkType(type1, type2))
+                                                                {
+                                                                    symanticAnalyser.raiseError("Type mismatch", @1.first_line);
+                                                                }
+                                                                const char* name = generator.addTemp(name1 , "==" , name2);
+                                                                generator.addQuad("EQU", $1.value, $3.value, name);
+                                                                $$.value = name;  
+                                                                $$.type = "bool";
+                                                            }
+
+            | compare_expr NOT_EQU compare_expr          {
+                                                                    const char* name1 = generator.getTemp($1.value);
+                                                                    const char* type1 = $1.type;
+                                                                    if (strcmp(type1, "ID") == 0) 
+                                                                    {
+                                                                        Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); 
+                                                                        name1 = generator.getAssignment(sym); 
+                                                                        type1 = sym->getVarTypeAsCStr();
+                                                                    }
+                                                                    const char* name2 = generator.getTemp($3.value);
+                                                                    const char* type2 = $3.type;
+                                                                    if (strcmp(type2, "ID") == 0) 
+                                                                    {
+                                                                        Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); 
+                                                                        name2 = generator.getAssignment(sym); 
+                                                                        type2 = sym->getVarTypeAsCStr();
+                                                                    }
+                                                                    if(!symanticAnalyser.checkType(type1, type2))
+                                                                    {
+                                                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
+                                                                    }
+                                                                    const char* name = generator.addTemp(name1 , "!=" , name2);
+                                                                    generator.addQuad("NOTEQU", $1.value, $3.value, name);
+                                                                    $$.value = name;  
+                                                                    $$.type = "bool";
+                                                                }
+
+            | compare_expr MORE_OR_EQU compare_expr      {
+                                                                    const char* name1 = generator.getTemp($1.value);
+                                                                    const char* type1 = $1.type;
+                                                                    if (strcmp(type1, "ID") == 0) 
+                                                                    {
+                                                                        Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); 
+                                                                        name1 = generator.getAssignment(sym); 
+                                                                        type1 = sym->getVarTypeAsCStr();
+                                                                    }
+                                                                    const char* name2 = generator.getTemp($3.value);
+                                                                    const char* type2 = $3.type;
+                                                                    if (strcmp(type2, "ID") == 0) 
+                                                                    {
+                                                                        Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); 
+                                                                        name2 = generator.getAssignment(sym); 
+                                                                        type2 = sym->getVarTypeAsCStr();
+                                                                    }
+                                                                    if(!symanticAnalyser.checkType(type1, type2))
+                                                                    {
+                                                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
+                                                                    }
+                                                                    const char* name = generator.addTemp(name1 , ">=" , name2);
+                                                                    generator.addQuad("MOREEQU", $1.value, $3.value, name);
+                                                                    $$.value = name;  
+                                                                    $$.type = "bool";
+                                                                }
+
+            | compare_expr LESS_OR_EQU compare_expr      {
+                                                                    const char* name1 = generator.getTemp($1.value);
+                                                                    const char* type1 = $1.type;
+                                                                    if (strcmp(type1, "ID") == 0) 
+                                                                    {
+                                                                        Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); 
+                                                                        name1 = generator.getAssignment(sym); 
+                                                                        type1 = sym->getVarTypeAsCStr();
+                                                                    }
+                                                                    const char* name2 = generator.getTemp($3.value);
+                                                                    const char* type2 = $3.type;
+                                                                    if (strcmp(type2, "ID") == 0) 
+                                                                    {
+                                                                        Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); 
+                                                                        name2 = generator.getAssignment(sym); 
+                                                                        type2 = sym->getVarTypeAsCStr();
+                                                                    }
+                                                                    if(!symanticAnalyser.checkType(type1, type2))
+                                                                    {
+                                                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
+                                                                    }
+                                                                    const char* name = generator.addTemp(name1 , "<=" , name2);
+                                                                    generator.addQuad("LESSEQU", $1.value, $3.value, name);
+                                                                    $$.value = name; 
+                                                                    $$.type = "bool";
+                                                                }
+
+            | compare_expr MORE compare_expr             {
+                                                                    const char* name1 = generator.getTemp($1.value);
+                                                                    const char* type1 = $1.type;
+                                                                    if (strcmp(type1, "ID") == 0) 
+                                                                    {
+                                                                        Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); 
+                                                                        name1 = generator.getAssignment(sym); 
+                                                                        type1 = sym->getVarTypeAsCStr();
+                                                                    }
+                                                                    const char* name2 = generator.getTemp($3.value);
+                                                                    const char* type2 = $3.type;
+                                                                    if (strcmp(type2, "ID") == 0) 
+                                                                    {
+                                                                        Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); 
+                                                                        name2 = generator.getAssignment(sym); 
+                                                                        type2 = sym->getVarTypeAsCStr();
+                                                                    }
+                                                                    if(!symanticAnalyser.checkType(type1, type2))
+                                                                    {
+                                                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
+                                                                    }
+                                                                    const char* name = generator.addTemp(name1 , ">" , name2);
+                                                                    generator.addQuad("MORE", $1.value, $3.value, name);
+                                                                    $$.value = name; 
+                                                                    $$.type = "bool";
+                                                                }
+
+            | compare_expr LESS compare_expr             {
+                                                                    const char* name1 = generator.getTemp($1.value);
+                                                                    const char* type1 = $1.type;
+                                                                    if (strcmp(type1, "ID") == 0) 
+                                                                    {
+                                                                        Symbol* sym = scope.getSymbolTableFromStack(name1)->getSymbolObjectbyName(name1); 
+                                                                        name1 = generator.getAssignment(sym); 
+                                                                        type1 = sym->getVarTypeAsCStr();
+                                                                    }
+                                                                    const char* name2 = generator.getTemp($3.value);
+                                                                    const char* type2 = $3.type;
+                                                                    if (strcmp(type2, "ID") == 0) 
+                                                                    {
+                                                                        Symbol* sym = scope.getSymbolTableFromStack(name2)->getSymbolObjectbyName(name2); 
+                                                                        name2 = generator.getAssignment(sym); 
+                                                                        type2 = sym->getVarTypeAsCStr();
+                                                                    }
+                                                                    if(!symanticAnalyser.checkType(type1, type2))
+                                                                    {
+                                                                        symanticAnalyser.raiseError("Type mismatch", @1.first_line);
+                                                                    }
+                                                                    const char* name = generator.addTemp(name1 , "<" , name2);
+                                                                    generator.addQuad("LESS", $1.value, $3.value, name);
+                                                                    $$.value = name; 
+                                                                    $$.type = "bool";
+                                                                }
+                                        
+
+            ;
 
 
 expr_terminal: rvalue                                  { 
@@ -979,6 +982,7 @@ expr_terminal: rvalue                                  {
 
                                                         }
             ;
+
 
 type: TYPE_INT                                                              { $$.type = "TYPE"; $$.value = "int"; }
       | TYPE_FLOAT                                                          { $$.type = "TYPE"; $$.value = "float"; }

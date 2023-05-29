@@ -8,23 +8,13 @@ int main()
 {
     x = y;
 
-
     int xy = 10;
-    xy = xy + 1;
+    xy = xy + y;
 
-    if(test == x)
+    if(test == x && s == "hi")
     {
         int g = 1;
 
-    }
-
-    bool sos = 1;
-
-    int i = z + 5;
-
-    while(i > x)
-    {
-        y = 100;
     }
 
     return 0;
@@ -33,16 +23,4 @@ int main()
 string name(int index)
 {
     return s;
-}
-
-
-string name(string index)
-{
-    return index;
-}
-
-
-bool name(string index)
-{
-    return true;
 }
