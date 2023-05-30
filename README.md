@@ -99,3 +99,6 @@ The project is organized as follows:
 
 We welcome any type of contribution, including bug fixes, feature enhancements, code refactoring, and documentation improvements.
 
+# License
+
+GNC Compiler is released under the GPL (GNU General Public License) v3.0 License. Feel free to use the code as you see fit.
