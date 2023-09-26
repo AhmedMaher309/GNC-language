@@ -96,6 +96,7 @@ The project is organized as follows:
 1. Fork this repository.
 2. Make your changes and commit them to your fork.
 3. Submit a pull request with a clear description of your changes.
+4. congratulations
 
 We welcome any type of contribution, including bug fixes, feature enhancements, code refactoring, and documentation improvements.
 
