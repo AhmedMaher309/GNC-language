@@ -1,4 +1,4 @@
-# GNC
+# GNC's not C
 
 #### This is a simple programming language using flex and bison tools, C, and C++.
 #### It's similar to C programming language but not exactly it.
@@ -8,13 +8,16 @@
 
 Clone the repository to your local machine
 
-    https://github.com/AhmedMaher309/Programming-language.git
+    clone https://github.com/AhmedMaher309/Programming-language.git
 
 
 Install Flex and Bison if they are not already installed. They can be installed on Ubuntu distro using the following commands:
     
-    sudo apt install flex
-    sudo apt install bison
+    sudo apt install flex bison
+    
+If you are using Arch based distros use the following commands:
+    
+    sudo pacman -S flex bison
 
 install gcc compilers if not already installed on your machine using the following commands:
     
@@ -89,6 +92,7 @@ The project is organized as follows:
 - [Habiba Hassan](https://github.com/HabibaHassan02)
 - [Yasmiine Zaki](https://github.com/yasmiinezaki)
 - [Ahmed Maher](https://github.com/AhmedMaher309)
+- [Ammar AlMorsi](https://github.com/ammaralmorsi)
 
 
 ## To contribute to GNC language and Compiler, follow these steps:
